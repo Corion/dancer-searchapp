@@ -1,0 +1,51 @@
+=head1 TO DO
+
+=head2 Pages
+
+=head3 Search page
+
+* Simple search
+
+* Autocomplete/recommend
+
+=head3 Simple (HTML) Results page
+
+* Excerpts
+
+* Direct, local links to documents
+
+=head3 Customization
+
+* Auto-session
+
+* Refinement using the last search, if the last search was "recently"
+
+=head2 Dancer
+
+* ElasticSearch plugin / configuration through YAML
+
+=head2 Mojolicious
+
+* ElasticSearch plugin / configuration through YAML
+
+=head2 Search multiple indices
+
+Having different Elasticsearch clusters available (or not) should
+be recognized and the search results should be combined. For example,
+a work cluster should be searched in addition to the local cluster, if the
+work network is available.
+
+This calls for using the asynchronous API not only for searching but also
+for progressively enhancing the results page as new results become available.
+
+=head2 Java ES plugins
+
+File system crawler
+
+L<https://github.com/dadoonet/fscrawler>
+
+=head2 ES Analyzers
+
+Media data / mp3 ?!
+
+=cut

@@ -1,0 +1,26 @@
+<div id="page">
+      <div id="content">
+        <div id="header">
+          <h1>Search results</h1>
+        </div>
+        <form action="/" 	method="GET" enctype="multipart/form-data">
+        <input type="text" name="q" value="<% params.q |html %>">
+        </form>
+        <% IF results.total %>
+        <h1><% results.total %> Results</h1>
+            <!-- paginate later, if at all -->
+            <% FOR hit IN results.hits %>
+              <div class="result">
+              <h3><% hit.source.title |html %> - <% hit.source.date |html %> (<% hit.id %>)</h3>
+              <p><% IF hit.highlight  %>
+                 <% hit.source.content %><!-- ugh ... -->
+                 <% ELSE %>
+                 <% hit.source.content |html %>
+                 <% END %>
+              </p>
+              </div>
+              <% END %>
+        <% END %>
+
+      </div>
+</div>
