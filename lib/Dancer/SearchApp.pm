@@ -8,6 +8,9 @@ use vars qw($VERSION $es $server);
 
 $VERSION = '0.01';
 
+use Data::Dumper;
+$Data::Dumper::Sortkeys = 1;
+
 sub search {
     if( ! $es ) {
         #my $nodes;
@@ -45,21 +48,26 @@ get '/' => sub {
     $size ||= 10;
     
     if( defined params->{'q'}) {
+        
+        warning "Reading ES indices\n";
+        use vars '%indices';
+        %indices = %{ search->indices->get({index => ['*']}) };
+        warning $_ for sort keys %indices;
+
         # Move this to an async query, later
         my $search_term = params->{'q'};
+        my $index = config->{index};
         $results = search->search(
-            index => config->{index},
+            # Wir suchen in allen Sprachindices
+            index => [ grep { /\Q$index\E/ } sort keys %indices ],
             body => {
                 from => $from,
                 size => $size,
                 query => {
-                    #match_all => $search_term,
-                    #match => { content => $search_term },
-                    # Currently no restriction on the fields
-                    fuzzy => { _all   => $search_term },
-                    #match => { date    => $search_term },
-                            #],
-                        #}
+                    query_string => {
+                        query => $search_term,
+                        fields => ['subject','content', 'language', 'content.language', 'content.de', 'de', ], # 'date', 'language' 
+                    },
                 },
                 sort => {
                     _score => { order => 'desc' },
@@ -74,7 +82,6 @@ get '/' => sub {
             }
         );
         
-        use Data::Dumper;
         warn Dumper $results->{hits};
     } else {
         # Update the statistics

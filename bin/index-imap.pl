@@ -17,6 +17,10 @@ use Text::CleanFragment 'clean_fragment';
 use Data::Dumper;
 use YAML 'LoadFile';
 
+use JSON::MaybeXS;
+my $true = JSON->true;
+my $false = JSON->false;
+
 GetOptions(
     'force|f' => \my $force_rebuild,
     'config|c' => \my $config_file,
@@ -41,76 +45,83 @@ my $e = Search::Elasticsearch->new(
 );
 
 if( $force_rebuild ) {
-    $e->indices->delete( index => $index_name );
+    eval { $e->indices->delete( index => $index_name ); }
 };
 
 # Datenstruktur für ES Felder, deren Sprache wir nicht kennen
-sub multilang_text() {
-    my $multilang_text = { 
-          "type" => "string",
+sub multilang_text($) {
+    my($name)= @_;
+    return { 
+          "type" => "multi_field",
           "fields" =>  {
-                 # subject.en
-                "en" => { 
-                  "type" =>     "string",
-                  "analyzer" => "english"
-                },
-                 # subject.de
-                "de" => { 
-                  "type" =>     "string",
-                  "analyzer" => "light_german"
-                }
+               $name => {
+                   "type" => "string",
+                   "analyzer" => "standard",
+                   "index" => "analyzed",
+                     "store" => $true,
+               },
+               "raw" => {
+                    "type" => "string",
+                    "index" => "not_analyzed",
+                     "store" => $true,
+               },
         }
     };
 };
 
-if( ! $e->indices->exists( index => $index_name )) {
-    $e->indices->create(index=>$index_name,
-    #$e->indices->put_settings( index => $index_name,
-        body => {
-        "index" => {
-            "number_of_replicas" => 0,
-            "analysis" => {
-                "analyzer" => {
-                    # Der sollte dynamisch Englisch und Deutsch koennen!
-                    "mail_analyzer" => {
-                        "tokenizer" => "standard",
-                        "filter" => ["standard", "lowercase", "de_stemmer"]
-                    }
+my $mail_mapping = {
+    "properties" => {
+        "messageid" => { type => "string" }, # fuer die URL spaeter... sollte das in _id?!
+        "subject" => multilang_text('subject'),
+        "content"    => multilang_text('content'),
+        "date"    => {
+          "type"  =>  "date",
+          "format" => "yyyy-MM-dd kk:mm:ss", # yay for Joda, yet-another-timeparser-format
+        },
+        "from"    => { type => "string" },
+        "to"      => { type => "string" }, # eigentlich Liste...
+    },
+};
+
+# Erstellt einen Mail-Index mit der passenden Sprache
+# https://www.elastic.co/guide/en/elasticsearch/reference/current/analysis-lang-analyzer.html
+
+use vars qw(%analyzers %indices);
+
+%analyzers = (
+    'de' => 'german',
+    'en' => 'english',
+    'ro' => 'english', # I don't speak "romanian"
+);
+
+print "Reading ES indices\n";
+%indices = map {
+    warn Dumper $_;
+    $_->{name} => 1,
+} $e->indices->get({index => ['*']});
+
+sub find_or_create_index {
+    my( $index_name, $lang ) = @_;
+    my $full_name = "$index_name.$lang";
+    if( ! $indices{ $full_name } and ! $e->indices->exists( index => $full_name )) {
+        $e->indices->create(index=>$full_name,
+        #$e->indices->put_settings( index => $index_name,
+            body => {
+            settings => {
+                mapper => { dynamic => $false }, # this is "use strict;" for ES
+                "number_of_replicas" => 0,
+                "analysis" => {
+                    "analyzer" => $analyzers{ $lang }
                 },
-                "mappings" => {
-                    # Hier muessen/sollten wir wir die einzelnen Typen definieren
-                    # https://www.elastic.co/guide/en/elasticsearch/reference/current/mapping.html
-                    "mail" => {
-                        "properties" => {
-                            "messageid" => "string", # fuer die URL spaeter... sollte das in _id?!
-                            "subject" => multilang_text(),
-                            "body"    => multilang_text(),
-                            "date"    => "date",
-                            "from"    => { type => "string" },
-                            "to"      => { type => "string" }, # eigentlich Liste...
-                            
-                      },
-                    },
-                },
-          "filter" => {
-                    "de_stemmer" => {
-                        "type" => "stemmer",
-                        "name" => "light_german"
-                    },
-                    # Synonyme sollten aus einer Datei kommen
-                    # synonym_path statt synonyms
-                    # https://www.elastic.co/guide/en/elasticsearch/reference/current/analysis-synonym-tokenfilter.html
-                    "synonym" => {
-                        "type" => "synonym",
-                        "synonyms" => [
-                            "i-pod, i pod => ipod",
-                            "universe, cosmos"
-                        ]
-                    }
-            }
-        }
-        }
-    });
+            },
+            "mappings" => {
+                # Hier muessen/sollten wir wir die einzelnen Typen definieren
+                # https://www.elastic.co/guide/en/elasticsearch/reference/current/mapping.html
+                "mail" => $mail_mapping,
+            },
+        });
+    };
+    $full_name
 };
 
 # Connect to cluster at search1:9200, sniff all nodes and round-robin between them:
@@ -271,6 +282,9 @@ sub get_messages_from_folder {
     return @message_uids;
 };
 
+use Search::Elasticsearch::Plugin::Langdetect;
+my $ld = Search::Elasticsearch::Plugin::Langdetect->new( elasticsearch => $e );
+
 use App::ImapBlog::Entry;
 my @folders = imap_recurse(imap, $config);
 my $importer = $e->bulk_helper();
@@ -285,20 +299,26 @@ for my $folder (@folders) {
     print sprintf "Importing %d messages\n", 0+@messages;
     for my $msg (@messages) {
         my $body = $msg->body;
+        my $lang = $ld->detect_language( $body );
+        
+        my $full_name = find_or_create_index($index_name,$lang);
+        
+        # https://www.elastic.co/guide/en/elasticsearch/guide/current/one-lang-docs.html
         $importer->index({
-                index   => $index_name,
+                index   => $full_name, # XXX put into language-separate indices!
                 type    => 'mail', # or 'attachment' ?!
                 #id      => $msg->messageid,
                 id      => $msg->uid,
                 # index bcc, cc, to, from
                 # content-type, ...
-                # body    => { # "body" for non-bulk
+                # body    => { # "body" for non-bulk, "source" for bulk ...
                 source    => {
                     messageid => $msg->messageid,
                     subject => $msg->subject,
                     from    => $msg->from,
                     to      => [ $msg->recipients ],
                     content => $body,
+                    language => $lang,
                     date    => $msg->date->strftime('%Y-%m-%d %H:%M:%S'),
                 }
        });

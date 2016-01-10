@@ -14,3 +14,6 @@ On Windows
 
 =head2 Thunderbird link-by-messageid
 
+Install the "Thunderlink" plug-in / add-on for Thunderbird and
+register the C<thunderlink://> URI. This allows your browser to directly
+display emails in Thunderbird.

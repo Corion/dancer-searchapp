@@ -16,12 +16,14 @@
             <!-- paginate later, if at all -->
             <% FOR hit IN results.hits %>
               <div class="result">
-              
-              <h3><a href="thunderlink://messageid=<%hit.source.messageid%>" ><% hit.source.subject |html %></a> - <% hit.source.date |html %> (<% hit.id %>)</h3>
+              <!-- Autocompletion -->
+              <!-- https://www.elastic.co/guide/en/elasticsearch/reference/current/search-suggesters-completion.html -->
+              <h3><a href="thunderlink://messageid=<%hit.source.messageid%>" ><% hit.source.subject |html %></a> - <% hit.source.date |html %> <% hit.source.language %>(<% hit.id %>)</h3>
               <p><% IF hit.highlight  %>
-                 <% hit.source.content %><!-- ugh ... -->
+                   <style>em {background: yellow; font-color: black;}</style>
+                   <% FOR line IN hit.highlight.content %><% line %><!-- ugh, kein Escaping hier ... --><% END %>
                  <% ELSE %>
-                 <% hit.source.content |html %>
+                  <% hit.source.content |html %>
                  <% END %>
               </p>
               </div>
