@@ -35,13 +35,23 @@ get '/' => sub {
     # search and index page only, to serve the index
     # page as a static file
     
+    my $statistics;
     my $results;
+    
+    my $from = params->{'from'};
+    $from =~ s!\D!!g;
+    my $size = params->{'size'};
+    $size =~ s!\D!!g;
+    $size ||= 10;
+    
     if( defined params->{'q'}) {
         # Move this to an async query, later
         my $search_term = params->{'q'};
         $results = search->search(
             index => config->{index},
             body => {
+                from => $from,
+                size => $size,
                 query => {
                     #match_all => $search_term,
                     #match => { content => $search_term },
@@ -63,8 +73,21 @@ get '/' => sub {
                 }
             }
         );
+        
         use Data::Dumper;
         warn Dumper $results->{hits};
+    } else {
+        # Update the statistics
+        $statistics = search->search(
+            search_type => 'count',
+            index => config->{index},
+            body        => {
+                query       => {
+                    match_all => {}
+                }
+            }
+        );
+        warn Dumper $statistics;
     };
     
     for( @{ $results->{ hits }->{hits} } ) {
@@ -76,7 +99,11 @@ get '/' => sub {
     # Output the search results
     template 'index', {
             results => $results->{hits},
-            params => { q=> params()->{q} },
+            params => {
+                q=> params()->{q},
+                from => params()->{from},
+                size => params->{size}
+            },
     };
 };
 
