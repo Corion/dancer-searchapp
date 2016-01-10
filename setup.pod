@@ -1,0 +1,16 @@
+=head1 Setup
+
+=head2 Elasticsearch plugins
+
+=head3 Language detector
+
+L<https://github.com/jprante/elasticsearch-langdetect>
+
+  ./bin/plugin install http://xbib.org/repository/org/xbib/elasticsearch/plugin/elasticsearch-langdetect/2.1.1.0/elasticsearch-langdetect-2.1.1.0-plugin.zip
+  
+On Windows
+
+  elasticsearch-2.1.1\bin\plugin.bat install http://xbib.org/repository/org/xbib/elasticsearch/plugin/elasticsearch-langdetect/2.1.1.0/elasticsearch-langdetect-2.1.1.0-plugin.zip
+
+=head2 Thunderbird link-by-messageid
+
