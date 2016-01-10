@@ -4,6 +4,7 @@ use strict;
 #use Promises backend => ['AnyEvent'];
 use Mail::IMAPClient;
 use Search::Elasticsearch;
+use Search::Elasticsearch::Bulk;
 use Getopt::Long;
 use Mail::IMAPClient;
 
@@ -260,7 +261,7 @@ sub get_messages_from_folder {
         } elsif( imap->has_capability('sort')) {
             @message_uids = imap->sort("REVERSE DATE", 'UTF-8', "ALL");
             if(! defined $message_uids[0]) {
-                warn imap->LastError;
+                warn "Got an empty UID, don't know why?! " . imap->LastError;
             };
         } else {
             # read messages
@@ -272,28 +273,36 @@ sub get_messages_from_folder {
 
 use App::ImapBlog::Entry;
 my @folders = imap_recurse(imap, $config);
-my @messages;
+my $importer = $e->bulk_helper();
 for my $folder (@folders) {
+    my @messages;
+    print "Reading $folder\n";
     push @messages, map {
         App::ImapBlog::Entry->from_imap_client(imap(), $_);
     } get_messages_from_folder( $folder );
-};
 
-for my $msg (@messages) {
-    my $body =                 $msg->body;
-    $e->index(
-            index   => $index_name,
-            type    => 'mail', # or 'attachment' ?!
-            id      => $msg->uid,
-            # index bcc, cc, to, from
-            # content-type, ...
-            body    => {
-                title   => $msg->subject,
-                from    => $msg->from,
-                to      => [ $msg->recipients ],
-                content => $body,
-                date    => $msg->date->strftime('%Y-%m-%d %H:%M:%S'),
-            }
-        );
+    # Importieren
+    print sprintf "Importing %d messages\n", 0+@messages;
+    for my $msg (@messages) {
+        my $body = $msg->body;
+        $importer->index({
+                index   => $index_name,
+                type    => 'mail', # or 'attachment' ?!
+                #id      => $msg->messageid,
+                id      => $msg->uid,
+                # index bcc, cc, to, from
+                # content-type, ...
+                # body    => { # "body" for non-bulk
+                source    => {
+                    messageid => $msg->messageid,
+                    subject => $msg->subject,
+                    from    => $msg->from,
+                    to      => [ $msg->recipients ],
+                    content => $body,
+                    date    => $msg->date->strftime('%Y-%m-%d %H:%M:%S'),
+                }
+       });
+    };
+    $importer->flush;
 };
-
+$importer->flush;
