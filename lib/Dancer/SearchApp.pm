@@ -51,6 +51,9 @@ get '/' => sub {
                             #],
                         #}
                 },
+                sort => {
+                    _score => { order => 'desc' },
+                },
                "highlight" => {
                     "pre_tags" => '<b>',
                     "post_tags" => '</b>',
