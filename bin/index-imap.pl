@@ -43,15 +43,73 @@ if( $force_rebuild ) {
     $e->indices->delete( index => $index_name );
 };
 
+# Datenstruktur für ES Felder, deren Sprache wir nicht kennen
+sub multilang_text() {
+    my $multilang_text = { 
+          "type" => "string",
+          "fields" =>  {
+                 # subject.en
+                "en" => { 
+                  "type" =>     "string",
+                  "analyzer" => "english"
+                },
+                 # subject.de
+                "de" => { 
+                  "type" =>     "string",
+                  "analyzer" => "light_german"
+                }
+        }
+    };
+};
+
 if( ! $e->indices->exists( index => $index_name )) {
-    $e->indices->create(index=>$index_name);
-    $e->indices->put_settings( index => $index_name,
+    $e->indices->create(index=>$index_name,
+    #$e->indices->put_settings( index => $index_name,
         body => {
         "index" => {
-            "number_of_replicas" => 0
+            "number_of_replicas" => 0,
+            "analysis" => {
+                "analyzer" => {
+                    # Der sollte dynamisch Englisch und Deutsch koennen!
+                    "mail_analyzer" => {
+                        "tokenizer" => "standard",
+                        "filter" => ["standard", "lowercase", "de_stemmer"]
+                    }
+                },
+                "mappings" => {
+                    # Hier muessen/sollten wir wir die einzelnen Typen definieren
+                    # https://www.elastic.co/guide/en/elasticsearch/reference/current/mapping.html
+                    "mail" => {
+                        "properties" => {
+                            "messageid" => "string", # fuer die URL spaeter... sollte das in _id?!
+                            "subject" => multilang_text(),
+                            "body"    => multilang_text(),
+                            "date"    => "date",
+                            "from"    => { type => "string" },
+                            "to"      => { type => "string" }, # eigentlich Liste...
+                            
+                      },
+                    },
+                },
+          "filter" => {
+                    "de_stemmer" => {
+                        "type" => "stemmer",
+                        "name" => "light_german"
+                    },
+                    # Synonyme sollten aus einer Datei kommen
+                    # synonym_path statt synonyms
+                    # https://www.elastic.co/guide/en/elasticsearch/reference/current/analysis-synonym-tokenfilter.html
+                    "synonym" => {
+                        "type" => "synonym",
+                        "synonyms" => [
+                            "i-pod, i pod => ipod",
+                            "universe, cosmos"
+                        ]
+                    }
+            }
+        }
         }
     });
-    # XXX specify types
 };
 
 # Connect to cluster at search1:9200, sniff all nodes and round-robin between them:
