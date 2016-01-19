@@ -8,6 +8,12 @@ use JSON::MaybeXS;
         use Search::Elasticsearch;
         use Search::Elasticsearch::Plugin::Langdetect;
         
+        use Search::Elasticsearch();
+        my $es = Search::Elasticsearch->new(
+            nodes   => \@nodes,
+            plugins => ['Langdetect']
+        );
+        
         my $e = Search::Elasticsearch->new(...);
         my $ld = Search::Elasticsearch::Plugin::Langdetect->new(
             elasticsearch => $e
