@@ -8,6 +8,10 @@
 
 * Schneller finden
 
+* Besser als Google
+
+* Anders als Google
+
 =head1 Aufteilung
 
 * Crawler / Importer
@@ -32,6 +36,8 @@
 
 * Text importieren
 
+* Sprache / Synonyme / URL / Zeitpunkt
+
 =head1 Scrapers / Crawlers
 
 * IMAP
@@ -39,3 +45,31 @@
 * Dateisystem (pdf, Text, Perl)
 
 * HTTP / HTML
+
+* L<HTML::ExtractContent::Pluggable>
+
+=head1 Vergleich mit Google
+
+* Pagerank
+
+* ES rank
+
+* Metasuche
+
+=head1 Metasuche
+
+* Lokale Suche
+
+* Verwenden von ES-Instanzen im lokalen Netzwerk
+
+* Musik
+
+=head1 Ergebnisse
+
+* PDF
+
+* Mail
+
+* Musik
+
+=head1 Danke
