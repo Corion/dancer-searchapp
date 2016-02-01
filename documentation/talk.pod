@@ -1,0 +1,41 @@
+=head1 Zu Viel Information
+
+* Eigentlich: Zu viel _verschiedene_ Information
+
+* Kontext
+
+* Effizienter umschalten
+
+* Schneller finden
+
+=head1 Aufteilung
+
+* Crawler / Importer
+
+* Index
+
+* Suche
+
+=head1 Aufteilung
+
+* Crawler / Importer (Perl, Java)
+
+* Index Elasticsearch
+
+* Suche: Dancer
+
+=head1 Scrapers / Crawlers
+
+* Elemente finden
+
+* Text extrahieren
+
+* Text importieren
+
+=head1 Scrapers / Crawlers
+
+* IMAP
+
+* Dateisystem (pdf, Text, Perl)
+
+* HTTP / HTML
