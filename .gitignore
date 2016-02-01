@@ -10,3 +10,4 @@ App-scrape-*/
 cover_db
 elasticsearch-2.1.1/
 MYMETA.*
+imap-import.yml
