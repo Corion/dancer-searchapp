@@ -1,10 +1,12 @@
 #!perl -w
 use strict;
-#use Search::Elasticsearch::Async;
-#use Promises backend => ['AnyEvent'];
+use AnyEvent;
+use Search::Elasticsearch::Async;
+use Promises qw[collect deferred];
+
 use Mail::IMAPClient;
-use Search::Elasticsearch;
-use Search::Elasticsearch::Bulk;
+#use Search::Elasticsearch;
+#use Search::Elasticsearch::Bulk;
 use Getopt::Long;
 use Mail::IMAPClient;
 
@@ -37,15 +39,16 @@ my $config = LoadFile($config_file)->{imap};
 
 my $index_name = 'elasticsearch';
 
-my $e = Search::Elasticsearch->new(
+my $e = Search::Elasticsearch::Async->new(
     nodes => [
         'localhost:9200',
         #'search2:9200'
-    ]
+    ],
+    #plugins => ['Langdetect'],
 );
 
 if( $force_rebuild ) {
-    eval { $e->indices->delete( index => $index_name ); }
+    eval { $e->indices->delete( index => $index_name )->result; }
 };
 
 # Datenstruktur für ES Felder, deren Sprache wir nicht kennen
@@ -95,41 +98,58 @@ use vars qw(%analyzers %indices);
 );
 
 print "Reading ES indices\n";
-%indices = map {
-    warn Dumper $_;
-    $_->{name} => 1,
-} $e->indices->get({index => ['*']});
+my $indices_done = AnyEvent->condvar;
+$e->indices->get({index => ['*']})->then(sub{
+    %indices = %{ $_[0]};
+    $indices_done->send;
+});
+$indices_done->recv;
+
+warn "Index: $_\n" for keys %indices;
 
 sub find_or_create_index {
     my( $index_name, $lang ) = @_;
+    
+    warn "Initializing deferred";
+    my $res = deferred;
+    
     my $full_name = "$index_name.$lang";
-    if( ! $indices{ $full_name } and ! $e->indices->exists( index => $full_name )) {
-        $e->indices->create(index=>$full_name,
-        #$e->indices->put_settings( index => $index_name,
-            body => {
-            settings => {
-                mapper => { dynamic => $false }, # this is "use strict;" for ES
-                "number_of_replicas" => 0,
-                "analysis" => {
-                    "analyzer" => $analyzers{ $lang }
-                },
-            },
-            "mappings" => {
-                # Hier muessen/sollten wir wir die einzelnen Typen definieren
-                # https://www.elastic.co/guide/en/elasticsearch/reference/current/mapping.html
-                "mail" => $mail_mapping,
-            },
+    
+    if( ! $indices{ $full_name }) {
+        warn "Checking for '$full_name'";
+        $e->indices->exists( index => $full_name )
+        ->then( sub{
+            if( $_[0] ) { # exists
+                $res->resolve( $full_name );
+            } else { # we need to create it:
+                $e->indices->create(index=>$full_name,
+                    body => {
+                    settings => {
+                        mapper => { dynamic => $false }, # this is "use strict;" for ES
+                        "number_of_replicas" => 0,
+                        "analysis" => {
+                            "analyzer" => $analyzers{ $lang }
+                        },
+                    },
+                    "mappings" => {
+                        # Hier muessen/sollten wir wir die einzelnen Typen definieren
+                        # https://www.elastic.co/guide/en/elasticsearch/reference/current/mapping.html
+                        "mail" => $mail_mapping,
+                    },
+                })->then(sub {
+                    my( $created ) = @_;
+                    $res->resolve( $full_name );
+                });
+            };
         });
+    } else {
+        warn "Cached '$full_name'";
+        $res->resolve( $full_name );
     };
-    $full_name
+    return $res->promise
 };
 
 # Connect to cluster at search1:9200, sniff all nodes and round-robin between them:
-
-#my $e = Search::Elasticsearch::Async->new(
-#    nodes    => 'search1:9300',
-#    cxn_pool => 'Async::Sniff'
-#);
 
 # Lame-ass config cascade
 # Read from %ENV, $config, hard defaults, with different names,
@@ -282,12 +302,12 @@ sub get_messages_from_folder {
     return @message_uids;
 };
 
-use Search::Elasticsearch::Plugin::Langdetect;
-my $ld = Search::Elasticsearch::Plugin::Langdetect->new( elasticsearch => $e );
+#use Search::Elasticsearch::Plugin::Langdetect;
+#my $ld = Search::Elasticsearch::Plugin::Langdetect->new( elasticsearch => $e );
 
 use App::ImapBlog::Entry;
 my @folders = imap_recurse(imap, $config);
-my $importer = $e->bulk_helper();
+#my $importer = $e->bulk_helper();
 for my $folder (@folders) {
     my @messages;
     print "Reading $folder\n";
@@ -295,34 +315,54 @@ for my $folder (@folders) {
         App::ImapBlog::Entry->from_imap_client(imap(), $_);
     } get_messages_from_folder( $folder );
 
+    my $done = AnyEvent->condvar;
+
+    #my $ld = $e->langdetect;
     # Importieren
     print sprintf "Importing %d messages\n", 0+@messages;
-    for my $msg (@messages) {
-        my $body = $msg->body;
-        my $lang = $ld->detect_language( $body );
-        
-        my $full_name = find_or_create_index($index_name,$lang);
-        
-        # https://www.elastic.co/guide/en/elasticsearch/guide/current/one-lang-docs.html
-        $importer->index({
-                index   => $full_name, # XXX put into language-separate indices!
-                type    => 'mail', # or 'attachment' ?!
-                #id      => $msg->messageid,
-                id      => $msg->uid,
-                # index bcc, cc, to, from
-                # content-type, ...
-                # body    => { # "body" for non-bulk, "source" for bulk ...
-                source    => {
-                    messageid => $msg->messageid,
-                    subject => $msg->subject,
-                    from    => $msg->from,
-                    to      => [ $msg->recipients ],
-                    content => $body,
-                    language => $lang,
-                    date    => $msg->date->strftime('%Y-%m-%d %H:%M:%S'),
-                }
-       });
-    };
-    $importer->flush;
+    collect(
+        map {
+            my $msg = $_;
+            my $body = $msg->body;
+            #my $lang = $ld->detect_languages( body => $body );
+            #warn "Language promise";
+            #$lang->then( sub {
+            #    my $l = $_[0]->[0]->{language};
+            #    warn "Language detected: $l";
+            
+            #}, sub { die "ERR:" . Dumper \@_; })
+                my $lang = 'de';
+                find_or_create_index($index_name,$lang)
+            ->then( sub {
+                my( $full_name ) = @_;
+                # https://www.elastic.co/guide/en/elasticsearch/guide/current/one-lang-docs.html
+                #warn "Storing document";
+                $e->index({
+                        index   => $full_name, # XXX put into language-separate indices!
+                        type    => 'mail', # or 'attachment' ?!
+                        #id      => $msg->messageid,
+                        id      => $msg->uid,
+                        # index bcc, cc, to, from
+                        # content-type, ...
+                        body    => { # "body" for non-bulk, "source" for bulk ...
+                        #source    => {
+                            messageid => $msg->messageid,
+                            subject => $msg->subject,
+                            from    => $msg->from,
+                            to      => [ $msg->recipients ],
+                            content => $body,
+                            language => $lang,
+                            date    => $msg->date->strftime('%Y-%m-%d %H:%M:%S'),
+                        }
+                 });
+               })->then(sub{ $|=1; print "."; }, sub {warn Dumper \@_});
+       } @messages
+    )->then(sub {
+        print "$folder done\n";
+        $done->send;
+    });
+    
+    $done->recv;
+    #$importer->flush;
 };
-$importer->flush;
+#$importer->flush;
