@@ -1,0 +1,6 @@
+fs:
+    directories:
+        - folder: "C:\\Users\\Corion\\Projekte\\App-StarTraders"
+          recurse: false
+          exclude:
+             - ".git"
