@@ -120,10 +120,10 @@ sub find_or_create_index {
     my $done = AnyEvent->condvar;
     
     my $full_name = "$index_name.$lang";
-    warn "Initializing deferred for $full_name";
+    #warn "Initializing deferred for $full_name";
     #warn join ",", sort keys %indices;
     if( ! $indices{ $full_name }) {
-        warn "Checking for '$full_name'";
+        #warn "Checking for '$full_name'";
         $e->indices->exists( index => $full_name )
         ->then( sub{
             if( $_[0] ) { # exists
@@ -159,7 +159,7 @@ sub find_or_create_index {
             };
         });
     } else {
-        warn "Cached '$full_name'";
+        #warn "Cached '$full_name'";
         $res->resolve( $full_name );
     };
     return $res->promise
@@ -293,7 +293,7 @@ for my $folder (@folders) {
             ->then( sub {
                 my( $full_name ) = @_;
                 # https://www.elastic.co/guide/en/elasticsearch/guide/current/one-lang-docs.html
-                warn "Storing document into $full_name";
+                #warn "Storing document into $full_name";
                 $e->index({
                         index   => $full_name, # XXX put into language-separate indices!
                         type    => 'file', # or 'attachment' ?!
@@ -305,7 +305,7 @@ for my $folder (@folders) {
                             %$msg
                         }
                  });
-               })->then(sub{ $|=1; print "."; }, sub {warn Dumper \@_});
+               })->then(sub{ }, sub {warn Dumper \@_});
        } @entries
     )->then(sub {
         print "$folder done\n";
