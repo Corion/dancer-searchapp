@@ -9,9 +9,9 @@ $eumm_version =~ s/_//;
 
 WriteMakefile(
     NAME                => 'Dancer::SearchApp',
-    AUTHOR              => q{YOUR NAME <youremail@example.com>},
+    AUTHOR              => q{Max Maischein <corion@cpan.org>},
     VERSION_FROM        => 'lib/Dancer/SearchApp.pm',
-    ABSTRACT            => 'YOUR APPLICATION ABSTRACT',
+    ABSTRACT            => 'A simple local search engine',
     ($eumm_version >= 6.3001
       ? ('LICENSE'=> 'perl')
       : ()),
@@ -21,8 +21,11 @@ WriteMakefile(
         'YAML'       => 0,
         'Dancer'     => 1.3132,
         'Search::Elasticsearch' => 2,
+        'Search::Elasticsearch::Async' => 2,
         'Promises'   => 0,
-    },
+        'Path::Class' => 0,
+        'URI::file' => 0,
+        },
     dist                => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
     clean               => { FILES => 'Dancer-SearchApp-*' },
 );
