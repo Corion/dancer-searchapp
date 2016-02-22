@@ -60,6 +60,8 @@
 
 * Sprache / Synonyme / URL / Zeitpunkt
 
+* Duplikate! bzw. Reindizierug
+
 =head1 ES Schema
 
 * Subject
