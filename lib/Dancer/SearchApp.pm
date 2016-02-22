@@ -66,7 +66,7 @@ get '/' => sub {
                 query => {
                     query_string => {
                         query => $search_term,
-                        fields => ['subject','content', 'language', 'content.language', 'content.de', 'de', ], # 'date', 'language' 
+                        fields => ['subject','content', 'date'] 
                     },
                 },
                 sort => {
