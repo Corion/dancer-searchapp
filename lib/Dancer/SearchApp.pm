@@ -82,7 +82,7 @@ get '/' => sub {
             }
         );
         
-        warn Dumper $results->{hits};
+        #warn Dumper $results->{hits};
     } else {
         # Update the statistics
         $statistics = search->search(
