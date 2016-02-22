@@ -12,6 +12,28 @@
 
 * Anders als Google
 
+=head1 Existierende Lösungen
+
+=over incremental
+
+* Google Search Appliance
+
+* Zu teuer
+
+* Windows Desktop Search
+
+* Nur Windows / Netzlaufwerke
+
+* Sherlock (Mac)
+
+* Kein Mac
+
+* ??? Linux bzw. Ubuntu
+
+* Kenne ich nicht
+
+=back
+
 =head1 Aufteilung
 
 * Crawler / Importer
@@ -37,6 +59,18 @@
 * Text importieren
 
 * Sprache / Synonyme / URL / Zeitpunkt
+
+=head1 ES Schema
+
+* Subject
+
+* Body
+
+* From / To (???)
+
+* URL / id
+
+* type
 
 =head1 Scrapers / Crawlers
 
