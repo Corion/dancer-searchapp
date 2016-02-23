@@ -35,7 +35,8 @@ my $e = Search::Elasticsearch::Async->new(
         'localhost:9200',
         #'search2:9200'
     ],
-    #plugins => ['Langdetect'],
+    plugins => ['Langdetect'],
+    #trace_to => 'Stderr',
 );
 
 # Helper to do synchronous calls
@@ -44,6 +45,14 @@ sub synchronous($) {
     my $promise = $_[0];
     $_[0]->then(sub{ $await->send($_[0])});
     $await->recv
+};
+
+my $ok = AnyEvent->condvar;
+my $info = synchronous $e->cat->plugins;
+
+my $have_langdetect = $info =~ /langdetect/i;
+if( ! $have_langdetect ) {
+    warn "Language detection disabled";
 };
 
 # Datenstruktur für ES Felder, deren Sprache wir nicht kennen
@@ -264,6 +273,27 @@ sub get_file_info {
     \%res
 }
 
+my $ld = $e->langdetect;
+sub detect_language {
+    my( $content ) = @_;
+    my $res;
+    if($have_langdetect) {
+        $res = $ld->detect_languages({ body => $content });
+        $res->then( sub {
+            my $l = $_[0]->[0]->{language};
+            warn "Language detected: $l";
+            $l
+        });
+    } else {
+        $res = deferred;
+        $res->resolve('en');
+    }
+    $res
+}
+
+if( @ARGV) {
+    $config->{directories} = [@ARGV];
+};
 my @folders = fs_recurse(undef, $config);
 for my $folder (@folders) {
     my @entries;
@@ -282,22 +312,18 @@ for my $folder (@folders) {
 
     my $done = AnyEvent->condvar;
 
-    #my $ld = $e->langdetect;
     # Importieren
     print sprintf "Importing %d messages\n", 0+@entries;
     collect(
         map {
             my $msg = $_;
             my $body = $msg->{content};
-            #my $lang = $ld->detect_languages( body => $body );
-            #warn "Language promise";
-            #$lang->then( sub {
-            #    my $l = $_[0]->[0]->{language};
-            #    warn "Language detected: $l";
+            my $lang = detect_language($body);
             
-            #}, sub { die "ERR:" . Dumper \@_; })
-                my $lang = 'en';
+            $lang->then(sub{
+                my $lang = $_[0]; #'en';
                 find_or_create_index($index_name,$lang)
+            })
             ->then( sub {
                 my( $full_name ) = @_;
                 # https://www.elastic.co/guide/en/elasticsearch/guide/current/one-lang-docs.html
@@ -313,7 +339,7 @@ for my $folder (@folders) {
                             %$msg
                         }
                  });
-               })->then(sub{ }, sub {warn Dumper \@_});
+               })->then(sub{ }, sub {warn $_ for @_ });
        } @entries
     )->then(sub {
         print "$folder done\n";
