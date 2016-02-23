@@ -38,6 +38,14 @@ my $e = Search::Elasticsearch::Async->new(
     #plugins => ['Langdetect'],
 );
 
+# Helper to do synchronous calls
+sub synchronous($) {
+    my $await = AnyEvent->condvar;
+    my $promise = $_[0];
+    $_[0]->then(sub{ $await->send($_[0])});
+    $await->recv
+};
+
 # Datenstruktur für ES Felder, deren Sprache wir nicht kennen
 sub multilang_text($$) {
     my($name, $analyzer)= @_;
