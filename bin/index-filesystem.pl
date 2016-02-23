@@ -224,6 +224,7 @@ sub in_exclude_list {
 };
 
 # This should go into crawler::imap
+# make folders a parameter
 sub fs_recurse {
     my( $x, $config ) = @_;
 
@@ -232,7 +233,7 @@ sub fs_recurse {
     for my $folderspec (@{$config->{directories}}) {
         if( ! ref $folderspec ) {
             # plain name, use this folder
-            push @folders, $folderspec
+            push @folders, dir($folderspec)
         } else {
             if( $folderspec->{recurse}) {
                 # Recurse through this tree
