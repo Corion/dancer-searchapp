@@ -35,7 +35,7 @@ my $e = Search::Elasticsearch::Async->new(
         'localhost:9200',
         #'search2:9200'
     ],
-    #plugins => ['Langdetect'],
+    plugins => ['Langdetect'],
 );
 
 # Datenstruktur für ES Felder, deren Sprache wir nicht kennen
