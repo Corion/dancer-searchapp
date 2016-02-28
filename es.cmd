@@ -3,5 +3,5 @@
 setlocal
 
 cd /d %~dp0
-set JAVA_HOME=c:\Program Files\Java\jre1.8.0_45
-start elasticsearch-2.2.0\bin\elasticsearch.bat
+
+perl -wle "$ENV{JAVA_HOME} ||= do { glob(shift) }; print $ENV{JAVA_HOME}; system(1,'start ' . glob(shift))" "C:\Progra~1\Java\jre1.8*" elasticsearch-2.*\bin\elasticsearch.bat
