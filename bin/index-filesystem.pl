@@ -36,7 +36,24 @@ my $e = Search::Elasticsearch::Async->new(
         #'search2:9200'
     ],
     plugins => ['Langdetect'],
+    #trace_to => 'Stderr',
 );
+
+# Helper to do synchronous calls
+sub synchronous($) {
+    my $await = AnyEvent->condvar;
+    my $promise = $_[0];
+    $_[0]->then(sub{ $await->send($_[0])});
+    $await->recv
+};
+
+my $ok = AnyEvent->condvar;
+my $info = synchronous $e->cat->plugins;
+
+my $have_langdetect = $info =~ /langdetect/i;
+if( ! $have_langdetect ) {
+    warn "Language detection disabled";
+};
 
 # Datenstruktur für ES Felder, deren Sprache wir nicht kennen
 sub multilang_text($$) {
@@ -87,30 +104,22 @@ use vars qw(%analyzers %indices);
 if( $force_rebuild ) {
     print "Dropping indices\n";
     my @list;
-    my $indices_done = AnyEvent->condvar;
-    $e->indices->get({index => ['*']})->then(sub{
+    synchronous $e->indices->get({index => ['*']})->then(sub{
         @list = grep { /^\Q$index_name/ } sort keys %{ $_[0]};
-        $indices_done->send;
     });
-    $indices_done->recv;
 
-    my $deletion_done = AnyEvent->condvar;
-    collect( map { $e->indices->delete( index => $_ ) } @list )->then(sub{
+    synchronous collect( map { my $n=$_; $e->indices->delete( index => $n )->then(sub{warn "$n dropped" }) } @list )->then(sub{
+        warn "Index cleanup complete";
         %indices = ();
-        $deletion_done->send
     });
-    $deletion_done->recv;
 };
 
 print "Reading ES indices\n";
-my $indices_done = AnyEvent->condvar;
-$e->indices->get({index => ['*']})->then(sub{
+synchronous $e->indices->get({index => ['*']})->then(sub{
     %indices = %{ $_[0]};
-    $indices_done->send;
 });
-$indices_done->recv;
 
-warn "Index: $_\n" for keys %indices;
+warn "Index: $_\n" for grep { /^\Q$index_name/ } keys %indices;
 
 my %pending_creation;
 sub find_or_create_index {
@@ -127,13 +136,20 @@ sub find_or_create_index {
         $e->indices->exists( index => $full_name )
         ->then( sub{
             if( $_[0] ) { # exists
+                #warn "Full name: $full_name";
                 $res->resolve( $full_name );
+
+            # index creation in progress
             } elsif( $pending_creation{ $full_name }) {
-                    # index creation in progress
-                    push @{ $pending_creation{ $full_name } }, $res;
+                #warn "push Pending";
+                push @{ $pending_creation{ $full_name } }, $res;
+
+            # we need to create it ourselves
             } else {
-                # we need to create it ourselves
                 $pending_creation{ $full_name } = [];
+                #warn "Creating";
+                my $mapping = create_mapping($analyzers{$lang});
+                #warn Dumper $mapping;
                 $e->indices->create(index=>$full_name,
                     body => {
                     settings => {
@@ -146,16 +162,17 @@ sub find_or_create_index {
                     "mappings" => {
                         # Hier muessen/sollten wir wir die einzelnen Typen definieren
                         # https://www.elastic.co/guide/en/elasticsearch/reference/current/mapping.html
-                        "file" => create_mapping($analyzers{$lang}),
+                        'file' => $mapping,
                     },
                 })->then(sub {
                     my( $created ) = @_;
+                    #warn "Full name: $full_name";
                     $res->resolve( $full_name );
                     for( @{ $pending_creation{ $full_name }}) {
                         $_->resolve( $full_name );
                     };
                     delete $pending_creation{ $full_name };
-                });
+                }, sub { warn "Couldn't create index $full_name: " . Dumper \@_});
             };
         });
     } else {
@@ -207,6 +224,7 @@ sub in_exclude_list {
 };
 
 # This should go into crawler::imap
+# make folders a parameter
 sub fs_recurse {
     my( $x, $config ) = @_;
 
@@ -215,7 +233,7 @@ sub fs_recurse {
     for my $folderspec (@{$config->{directories}}) {
         if( ! ref $folderspec ) {
             # plain name, use this folder
-            push @folders, $folderspec
+            push @folders, dir($folderspec)
         } else {
             if( $folderspec->{recurse}) {
                 # Recurse through this tree
@@ -256,6 +274,32 @@ sub get_file_info {
     \%res
 }
 
+my $ld = $e->langdetect;
+sub detect_language {
+    my( $content ) = @_;
+    my $res;
+    $have_langdetect = 0;
+    if($have_langdetect) {
+        $res = $ld->detect_languages({ body => $content })
+        ->then( sub {
+            my $l = $_[0]->{languages}->[0]->{language};
+            warn "Language detected: $l";
+            return $l
+        }, sub {
+            warn "Error while detecting language: $_[0], defaulting to 'en'";
+            return 'en'
+        });
+    } else {
+        $res = deferred;
+        $res->resolve('en');
+        $res = $res->promise
+    }
+    $res
+}
+
+if( @ARGV) {
+    $config->{directories} = [@ARGV];
+};
 my @folders = fs_recurse(undef, $config);
 for my $folder (@folders) {
     my @entries;
@@ -274,26 +318,23 @@ for my $folder (@folders) {
 
     my $done = AnyEvent->condvar;
 
-    #my $ld = $e->langdetect;
     # Importieren
     print sprintf "Importing %d messages\n", 0+@entries;
     collect(
         map {
             my $msg = $_;
             my $body = $msg->{content};
-            #my $lang = $ld->detect_languages( body => $body );
-            #warn "Language promise";
-            #$lang->then( sub {
-            #    my $l = $_[0]->[0]->{language};
-            #    warn "Language detected: $l";
+            my $lang = detect_language($body);
             
-            #}, sub { die "ERR:" . Dumper \@_; })
-                my $lang = 'en';
-                find_or_create_index($index_name,$lang)
+            $lang->then(sub{
+                my $found_lang = $_[0]; #'en';
+                #warn "Have language '$found_lang'";
+                return find_or_create_index($index_name,$found_lang)
+            })
             ->then( sub {
                 my( $full_name ) = @_;
                 # https://www.elastic.co/guide/en/elasticsearch/guide/current/one-lang-docs.html
-                #warn "Storing document into $full_name";
+                warn "Storing document into $full_name";
                 $e->index({
                         index   => $full_name, # XXX put into language-separate indices!
                         type    => 'file', # or 'attachment' ?!
@@ -305,7 +346,9 @@ for my $folder (@folders) {
                             %$msg
                         }
                  });
-               })->then(sub{ }, sub {warn Dumper \@_});
+               })->then(sub{
+                   #warn "Done."
+               }, sub {warn $_ for @_ });
        } @entries
     )->then(sub {
         print "$folder done\n";
