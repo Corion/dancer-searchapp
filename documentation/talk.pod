@@ -1,6 +1,10 @@
+=head1 Suchmaschine in Perl
+
 =head1 Zu Viel Information
 
 * Eigentlich: Zu viel _verschiedene_ Information
+
+* Zu wenig Zeit, die Informationen zu organisieren
 
 * Kontext
 
@@ -44,7 +48,7 @@
 
 =head1 Aufteilung
 
-* Crawler / Importer (Perl, Java)
+* Crawler / Importer (Perl)
 
 * Index Elasticsearch
 
@@ -64,13 +68,13 @@
 
 =head1 ES Schema
 
-* Subject
+* Subject / Titel
 
-* Body
+* Body (HTML)
 
 * From / To (???)
 
-* URL / id
+* URL / id ( file:// bzw. mail:// )
 
 * type
 
@@ -108,9 +112,9 @@
 
 * Nicht gut zur Vorführung
 
-* GPW Vorträge/Abstracts aus Act
+* EU/ESMA produziert viele PDFs
 
-* Perl Programme/Code
+* Ich produziere viele Perl Programme
 
 =head1 Ergebnisse
 
