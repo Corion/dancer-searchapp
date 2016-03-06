@@ -18,6 +18,10 @@ use POSIX 'strftime';
 
 use Dancer::SearchApp::IndexSchema qw(create_mapping);
 use Dancer::SearchApp::Utils qw(synchronous);
+
+use lib 'C:/Users/Corion/Projekte/Apache-Tika/lib';
+use Apache::Tika::Server;
+
 use JSON::MaybeXS;
 my $true = JSON->true;
 my $false = JSON->false;
@@ -42,10 +46,22 @@ my $e = Search::Elasticsearch::Async->new(
 );
 
 # XXX Convert to Promises too
+my $tika_glob = 'C:/Users/Corion/Projekte/Apache-Tika/jar/tika-server-*.jar';
+my $tika_path = (sort { my $ad; $a =~ /server-1.(\d+)/ and $ad=$1;
+                my $bd; $b =~ /server-1.(\d+)/ and $bd=$1;
+                $bd <=> $ad
+              } glob $tika_glob)[0];
+die "Tika not found in '$tika_glob'" unless -f $tika_path; 
+#warn "Using '$tika_path'";
+my $tika= Apache::Tika::Server->new(
+    jarfile => $tika_path,
+);
+$tika->launch;
 
 my $ok = AnyEvent->condvar;
 my $info = synchronous $e->cat->plugins;
 
+# Koennen wir ElasticSearch langdetect als Fallback nehmen?
 my $have_langdetect = $info =~ /langdetect/i;
 if( ! $have_langdetect ) {
     warn "Language detection disabled";
@@ -58,7 +74,11 @@ use vars qw(%analyzers %indices);
 %analyzers = (
     'de' => 'german',
     'en' => 'english',
+    'no' => 'norwegian',
+    'it' => 'italian',
+    'lt' => 'lithuanian',
     'ro' => 'english', # I don't speak "romanian"
+    'sk' => 'english', # I don't speak "serbo-croatian"
 );
 
 if( $force_rebuild ) {
@@ -86,9 +106,8 @@ sub find_or_create_index {
     my( $index_name, $lang ) = @_;
     
     my $res = deferred;
-    my $done = AnyEvent->condvar;
     
-    my $full_name = "$index_name.$lang";
+    my $full_name = "$index_name-$lang";
     #warn "Initializing deferred for $full_name";
     #warn join ",", sort keys %indices;
     if( ! $indices{ $full_name }) {
@@ -195,15 +214,16 @@ sub fs_recurse {
             # plain name, use this folder
             push @folders, dir($folderspec)
         } else {
+            my $dir = dir($folderspec->{folder});
+            push @folders, $dir;
+            $folderspec->{exclude} ||= [];
             if( $folderspec->{recurse}) {
                 # Recurse through this tree
-                my $dir = $folderspec->{folder};
-                warn "Scanning into '$dir'";
-                $folderspec->{exclude} ||= [];
+                warn "Recursing into '$dir'";
                 my @child_folders;
                 my $p;
                 if( $folderspec->{recurse} ) {
-                    @child_folders = grep { $_->is_dir } dir($dir)->children;
+                    @child_folders = grep { $_->is_dir } $dir->children;
                 };
                 @child_folders = grep { ! in_exclude_list( $_, $folderspec->{exclude} ) }
                     @child_folders;
@@ -226,32 +246,41 @@ sub get_file_info {
     my( $file ) = @_;
     my %res;
     $res{ url } = URI::file->new( $file )->as_string;
-    $res{ subject } = $file->basename;
-    $res{ language } = 'en';
-    $res{ content } = do { local(@ARGV,$/)= $file; <> };
-    my $mtime = (stat $file)[9];
-    $res{ date } = strftime('%Y-%m-%d %H:%M:%S', localtime($mtime));
+    # Involve Apache::Tika here
+    
+    my $info = $tika->get_all( $file );
+    
+    my $meta = $info->meta;
+    
+    $res{ title } = $meta->{"meta:title"} || $file->basename;
+    $res{ author } = $meta->{"meta:author"}; # as HTML
+    $res{ language } = $meta->{"meta:language"};
+    $res{ mime_type } = $meta->{"Content-Type"};
+    $res{ content } = $info->content; # as HTML
+    my $ctime = (stat $file)[10];
+    $res{ creation_date } = strftime('%Y-%m-%d %H:%M:%S', localtime($ctime));
     \%res
 }
 
 my $ld = $e->langdetect;
 sub detect_language {
-    my( $content ) = @_;
+    my( $content, $meta ) = @_;
     my $res;
     $have_langdetect = 0;
-    if($have_langdetect) {
+    if($have_langdetect and ! $meta->{language}) {
         $res = $ld->detect_languages({ body => $content })
         ->then( sub {
             my $l = $_[0]->{languages}->[0]->{language};
             warn "Language detected: $l";
             return $l
         }, sub {
-            warn "Error while detecting language: $_[0], defaulting to 'en'";
-            return 'en'
+            my $default = $config->{default_language} || 'en';
+            warn "Error while detecting language: $_[0], defaulting to '$default'";
+            return $default
         });
     } else {
         $res = deferred;
-        $res->resolve('en');
+        $res->resolve( $meta->{language} || $config->{default_language} || 'en');
         $res = $res->promise
     }
     $res
@@ -267,10 +296,9 @@ for my $folder (@folders) {
     push @entries, map {
         # analyze file
         # mime type
-        # File::MIMEType?
         # extract text
-        # Apache::Tika?
-        # recurse into file parts?!
+        # Apache::Tika?!
+        # recurse into file parts for (ZIP) archives?!
         # SHA1
         # language
         get_file_info($_)
@@ -284,7 +312,8 @@ for my $folder (@folders) {
         map {
             my $msg = $_;
             my $body = $msg->{content};
-            my $lang = detect_language($body);
+            
+            my $lang = detect_language($body, $msg);
             
             $lang->then(sub{
                 my $found_lang = $_[0]; #'en';
@@ -293,18 +322,16 @@ for my $folder (@folders) {
             })
             ->then( sub {
                 my( $full_name ) = @_;
+                #warn $msg->{mime_type};
                 # https://www.elastic.co/guide/en/elasticsearch/guide/current/one-lang-docs.html
-                warn "Storing document into $full_name";
+                #warn "Storing document into $full_name";
                 $e->index({
                         index   => $full_name, # XXX put into language-separate indices!
                         type    => 'file', # or 'attachment' ?!
-                        id      => $msg->{url},
+                        id      => $msg->{url}, # we want to overwrite
                         # index bcc, cc, to, from
-                        # content-type, ...
-                        body    => { # "body" for non-bulk, "source" for bulk ...
-                        #source    => {
-                            %$msg
-                        }
+                        body    => $msg # "body" for non-bulk, "source" for bulk ...
+                        #source    => $msg
                  });
                })->then(sub{
                    #warn "Done."
