@@ -16,6 +16,8 @@ use Path::Class;
 use URI::file;
 use POSIX 'strftime';
 
+use Dancer::SearchApp::IndexSchema qw(create_mapping);
+use Dancer::SearchApp::Utils qw(synchronous);
 use JSON::MaybeXS;
 my $true = JSON->true;
 my $false = JSON->false;
@@ -53,42 +55,6 @@ my $info = synchronous $e->cat->plugins;
 my $have_langdetect = $info =~ /langdetect/i;
 if( ! $have_langdetect ) {
     warn "Language detection disabled";
-};
-
-# Datenstruktur für ES Felder, deren Sprache wir nicht kennen
-sub multilang_text($$) {
-    my($name, $analyzer)= @_;
-    return { 
-          "type" => "multi_field",
-          "fields" =>  {
-               $name => {
-                   "type" => "string",
-                   "analyzer" => $analyzer,
-                   "index" => "analyzed",
-                     "store" => $true,
-               },
-               "raw" => {
-                    "type" => "string",
-                    "index" => "not_analyzed",
-                     "store" => $true,
-               },
-        }
-    };
-};
-
-sub create_mapping {
-    my( $analyzer ) = @_;
-    my $mapping = {
-        "properties" => {
-            "url"        => { type => "string" }, # file://-URL
-            "subject"    => multilang_text('subject',$analyzer),
-            "content"    => multilang_text('content',$analyzer),
-            "date"    => {
-              "type"  =>  "date",
-              "format" => "yyyy-MM-dd kk:mm:ss", # yay for Joda, yet-another-timeparser-format
-            },
-        },
-    };
 };
 
 # https://www.elastic.co/guide/en/elasticsearch/reference/current/analysis-lang-analyzer.html
