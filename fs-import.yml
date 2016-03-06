@@ -1,6 +1,8 @@
 fs:
     directories:
         - folder: "C:\\Users\\Corion\\Projekte\\App-StarTraders"
-          recurse: false
+          recurse: true
           exclude:
              - ".git"
+        - folder: "t\\documents"
+          recurse: true
