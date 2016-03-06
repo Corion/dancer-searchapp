@@ -41,13 +41,7 @@ my $e = Search::Elasticsearch::Async->new(
     #trace_to => 'Stderr',
 );
 
-# Helper to do synchronous calls
-sub synchronous($) {
-    my $await = AnyEvent->condvar;
-    my $promise = $_[0];
-    $_[0]->then(sub{ $await->send($_[0])});
-    $await->recv
-};
+# XXX Convert to Promises too
 
 my $ok = AnyEvent->condvar;
 my $info = synchronous $e->cat->plugins;
