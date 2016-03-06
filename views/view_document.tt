@@ -1,0 +1,23 @@
+<div id="page">
+      <div id="content">
+        <div id="header">
+          <h1>Search results</h1>
+        </div>
+        <form action="/" 	method="GET" enctype="multipart/form-data">
+        <input type="text" name="q" value="<% params.q |html %>">
+        </form>
+        <a href="<% backlink |html %>">Back to results</a>
+        <h3><% result.title |html %></a> - <% result.creation_date |html %> <% result.language %> / <% result.basic_mime_type %></h3>
+        <a href="/inline/<%result.index |uri%>/<%result.type |uri%>/<% result.id | uri | uri %>" >original</a>
+        <a href="/open/<%result.index |uri%>/<%result.type |uri%>/<% result.id | uri | uri %>">download</a>
+        <div>
+        <% IF result.basic_mime_type == 'text/plain' %><pre><% result.content |html %></pre><%
+           ELSE %>
+           <!-- Until we get a proper HTML cleaner ... -->
+           <% result.content |html %>
+        <% END %>
+        </div>
+        <a href="<% backlink |html %>">Back to results</a>
+
+      </div>
+</div>

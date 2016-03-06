@@ -20,12 +20,18 @@ WriteMakefile(
         'Test::More' => 0,
         'YAML'       => 0,
         'Dancer'     => 1.3132,
+        'Template'   => 0,
         'Search::Elasticsearch' => 2,
         'Search::Elasticsearch::Async' => 2,
         'Promises'   => 0,
         'Path::Class' => 0,
         'URI::file' => 0,
+        'Moo' => 0,
+        'Exporter' => 5, # for use Exporter 'import'
+        'URI::file' => 0,
+        'URI::Escape' => 0,
         },
     dist                => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
     clean               => { FILES => 'Dancer-SearchApp-*' },
 );
+
