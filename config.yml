@@ -32,8 +32,7 @@ engines:
 
 elastic_search:
     home: "./elasticsearch-2.1.1/"
-    index: "elasticsearch"
-    # XXX should be the app name instead!
+    index: "dancer-searchapp"
 
 # End of file
 
