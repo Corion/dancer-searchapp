@@ -48,4 +48,16 @@ L<https://github.com/dadoonet/fscrawler>
 
 Media data / mp3 ?!
 
+=head2 Synonyms
+
+Find out which one(s) we want:
+
+L<https://www.elastic.co/guide/en/elasticsearch/guide/current/synonyms-expand-or-contract.html>
+
+From first glance, we might want Simple Expansion, but Genre Expansion
+also seems interesting.
+
+We want to treat some synonyms as identical though, like 'MMSR' and its
+German translation 'Geldmarktstatistik'.
+
 =cut
