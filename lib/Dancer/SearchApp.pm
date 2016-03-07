@@ -132,33 +132,35 @@ get '/' => sub {
         #warn Dumper $results->{hits};
     } else {
         # Update the statistics
-        $statistics = search->search(
-            search_type => 'count',
-            index => config->{index},
-            body        => {
-                query       => {
-                    match_all => {}
-                }
-            }
-        );
-        warn Dumper $statistics;
+        #$statistics = search->search(
+        #    search_type => 'count',
+        #    index => config->{index},
+        #    body        => {
+        #        query       => {
+        #            match_all => {}
+        #        }
+        #    }
+        #);
+        #warn Dumper $statistics;
     };
     
-    for( @{ $results->{ hits }->{hits} } ) {
-        $_->{source} = Dancer::SearchApp::Entry->from_es( $_ );
-        for my $key ( qw( id index type )) {
-            $_->{$key} = $_->{"_$key"}; # thanks, Template::Toolkit
+    if( $results ) {
+        for( @{ $results->{ hits }->{hits} } ) {
+            $_->{source} = Dancer::SearchApp::Entry->from_es( $_ );
+            for my $key ( qw( id index type )) {
+                $_->{$key} = $_->{"_$key"}; # thanks, Template::Toolkit
+            };
+            
         };
-        
     };
     
     # Output the search results
     template 'index', {
-            results => $results->{hits},
+            results => ($results ? $results->{hits} : undef ),
             params => {
                 q=> params()->{q},
-                from => params()->{from},
-                size => params->{size}
+                from => $from,
+                size => $size,
             },
     };
 };
