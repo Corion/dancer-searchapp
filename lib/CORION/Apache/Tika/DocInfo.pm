@@ -1,7 +1,7 @@
 package CORION::Apache::Tika::DocInfo;
 use Moo;
 use vars qw($VERSION);
-$VERSION = '0.01';
+$VERSION = '0.02';
 
 has meta => (
     is => 'ro',

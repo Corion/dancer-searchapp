@@ -1,2 +1,5 @@
+0.02 20160307
+    . Fix compilation error in Dancer::SearchApp::IndexSchema
+
 0.01 20160307
     . Released on an unsuspecting world

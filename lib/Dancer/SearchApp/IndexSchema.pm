@@ -15,7 +15,7 @@ Dancer::SearchApp::IndexSchema - schema definition for the Elasticsearch index
 =cut
 
 use vars qw(@EXPORT_OK $VERSION);
-$VERSION = '0.01';
+$VERSION = '0.02';
 @EXPORT_OK = qw(create_mapping multilang_text find_or_create_index %indices %analyzers );
 
 # Datenstruktur für ES Felder, deren Sprache wir nicht kennen

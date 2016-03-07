@@ -10,7 +10,7 @@ use URI::file;
 use Dancer::SearchApp::Entry;
 
 use vars qw($VERSION $es %indices);
-$VERSION = '0.01';
+$VERSION = '0.02';
 
 =head1 NAME
 

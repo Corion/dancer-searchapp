@@ -7,6 +7,9 @@ SYNOPSIS
 QUICKSTART
 
       cpanm --look Dancer::SearchApp
+      
+      # Install prerequisites
+      cpanm --installdeps .
     
       # Install Elasticsearch https://www.elastic.co/downloads/elasticsearch
       # Start Elasticsearch

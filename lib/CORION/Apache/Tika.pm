@@ -4,7 +4,7 @@ use Moo;
 use JSON::XS qw(decode_json);
 
 use vars '$VERSION';
-$VERSION = '0.01';
+$VERSION = '0.02';
 
 =head1 NAME
 
