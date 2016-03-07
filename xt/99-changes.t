@@ -12,7 +12,7 @@ release date is mentioned as well
 
 =cut
 
-my $module = 'Text::CleanFragment';
+my $module = 'Dancer::SearchApp';
 
 (my $file = $module) =~ s!::!/!g;
 require "$file.pm";
