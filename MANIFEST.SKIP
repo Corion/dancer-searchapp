@@ -17,3 +17,4 @@ Makefile$
 ^imap-import.yml
 ^MYMETA
 ^imap-import.cmd
+^t/documents/.*.mp3$

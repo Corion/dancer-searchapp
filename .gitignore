@@ -14,3 +14,4 @@ MYMETA.*
 /imap-import.yml
 cpan/
 jar/
+t/documents/*.mp3
