@@ -5,6 +5,9 @@ use Try::Tiny;
 use Moo;
 with 'CORION::Apache::Tika::Connection';
 
+use vars '$VERSION';
+$VERSION = '0.01';
+
 sub request {
     my( $self, $method, $url, $content, @content ) = @_;
     # Should initialize

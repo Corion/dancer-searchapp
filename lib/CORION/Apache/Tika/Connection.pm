@@ -2,6 +2,8 @@ package CORION::Apache::Tika::Connection;
 use strict;
 use Moo::Role;
 use JSON::XS;
+use vars qw($VERSION);
+$VERSION = '0.01';
 
 sub decode_response {
     my( $self, $body ) = @_;

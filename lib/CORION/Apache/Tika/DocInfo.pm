@@ -1,5 +1,7 @@
 package CORION::Apache::Tika::DocInfo;
 use Moo;
+use vars qw($VERSION);
+$VERSION = '0.01';
 
 has meta => (
     is => 'ro',
@@ -10,7 +12,5 @@ has content => (
     is => 'ro',
     #isa => 'Int',
 );
-
-__PACKAGE__->meta->make_immutable;
 
 1;

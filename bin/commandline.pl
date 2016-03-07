@@ -15,7 +15,7 @@ GetOptions(
 
 # Round-robin between two nodes:
 
-my $index_name = 'elasticsearch';
+my $index_name = 'dancer-searchapp';
 
 my $e = Search::Elasticsearch->new(
     nodes => [
@@ -36,7 +36,6 @@ if( ! $e->indices->exists( index => $index_name )) {
             "number_of_replicas" => 0
         }
     });
-    # XXX specify types
 };
 
 # Connect to cluster at search1:9200, sniff all nodes and round-robin between them:

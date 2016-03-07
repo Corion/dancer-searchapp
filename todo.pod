@@ -46,7 +46,19 @@ L<https://github.com/dadoonet/fscrawler>
 
 =head2 ES Analyzers
 
-Media data / mp3 ?!
+=head3 Video data
+
+Which module provides interesting video metadata?
+
+=head3 Audio data
+
+MP3s get imported but could use a nicer body rendering.
+
+Playback duration should be calculated
+
+=head3 Playlist data
+
+Playlists should get custom rendering
 
 =head2 Synonyms
 

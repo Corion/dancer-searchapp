@@ -222,7 +222,7 @@ sub imap_recurse {
 
 sub get_messages_from_folder {
     my( $folder, @message_uids )= @_;
-    # XXX Add rate-limiting counter here, so we don't flood the IMAP server
+    # Add rate-limiting counter here, so we don't flood the IMAP server
     #     with reconnect attempts
     my $ok = eval {
         imap->select( $folder )

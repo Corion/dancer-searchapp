@@ -1,4 +1,6 @@
 package Search::Elasticsearch::Plugin::Langdetect::API;
+use vars qw($VERSION);
+$VERSION = '0.01';
 
 use Moo::Role;
 

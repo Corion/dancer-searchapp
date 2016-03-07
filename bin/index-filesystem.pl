@@ -20,11 +20,24 @@ use Dancer::SearchApp::IndexSchema qw(create_mapping find_or_create_index %indic
 use Dancer::SearchApp::Utils qw(synchronous);
 
 use lib 'C:/Users/Corion/Projekte/Apache-Tika/lib';
-use Apache::Tika::Server;
+use CORION::Apache::Tika::Server;
 
 use JSON::MaybeXS;
 my $true = JSON->true;
 my $false = JSON->false;
+
+=head1 USAGE
+
+  # index a directory and its subdirectories
+  index-filesytem.pl $HOME
+  
+  # Use defaults from ./fs-import.yml
+  index-filesystem.pl -c ~/myconfig.yml
+
+  # Drop and recreate index:
+  index-filesystem.pl -f ./fs-import.yml
+
+=cut
 
 GetOptions(
     'force|f' => \my $force_rebuild,
@@ -45,7 +58,6 @@ my $e = Search::Elasticsearch::Async->new(
     #trace_to => 'Stderr',
 );
 
-# XXX Convert to Promises too
 my $tika_glob = 'C:/Users/Corion/Projekte/Apache-Tika/jar/tika-server-*.jar';
 my $tika_path = (sort { my $ad; $a =~ /server-1.(\d+)/ and $ad=$1;
                 my $bd; $b =~ /server-1.(\d+)/ and $bd=$1;
@@ -53,7 +65,7 @@ my $tika_path = (sort { my $ad; $a =~ /server-1.(\d+)/ and $ad=$1;
               } glob $tika_glob)[0];
 die "Tika not found in '$tika_glob'" unless -f $tika_path; 
 #warn "Using '$tika_path'";
-my $tika= Apache::Tika::Server->new(
+my $tika= CORION::Apache::Tika::Server->new(
     jarfile => $tika_path,
 );
 $tika->launch;
@@ -177,7 +189,7 @@ sub fs_recurse {
 
 sub get_entries_from_folder {
     my( $folder, @message_uids )= @_;
-    # XXX Add rate-limiting counter here, so we don't flood
+    # Add rate-limiting counter here, so we don't flood
     
     return grep { !$_->is_dir } $folder->children();
 };
@@ -280,7 +292,7 @@ for my $folder (@folders) {
                 # https://www.elastic.co/guide/en/elasticsearch/guide/current/one-lang-docs.html
                 #warn "Storing document into $full_name";
                 $e->index({
-                        index   => $full_name, # XXX put into language-separate indices!
+                        index   => $full_name,
                         type    => 'file', # or 'attachment' ?!
                         id      => $msg->{url}, # we want to overwrite
                         # index bcc, cc, to, from

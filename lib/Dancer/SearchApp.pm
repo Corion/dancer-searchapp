@@ -9,8 +9,7 @@ use URI::file;
 
 use Dancer::SearchApp::Entry;
 
-use vars qw($VERSION $es $server);
-
+use vars qw($VERSION $es %indices);
 $VERSION = '0.01';
 
 =head1 NAME
@@ -89,16 +88,16 @@ get '/' => sub {
     my $statistics;
     my $results;
     
-    my $from = params->{'from'};
+    my $from = params->{'from'} || '';
     $from =~ s!\D!!g;
-    my $size = params->{'size'};
+    $from ||= 0;
+    my $size = params->{'size'} || '';
     $size =~ s!\D!!g;
     $size ||= 10;
     
     if( defined params->{'q'}) {
         
         warning "Reading ES indices\n";
-        use vars '%indices';
         %indices = %{ search->indices->get({index => ['*']}) };
         warning $_ for sort keys %indices;
 
@@ -292,5 +291,39 @@ within a trusted network, like your home network.
 Note that leaking a copy of the Elasticsearch search index is almost as
 bad as leaking a copy of the original data. This is especially true if you
 look at backups.
+
+=head1 REPOSITORY
+
+The public repository of this module is
+L<https://github.com/Corion/dancer-searchapp>.
+
+=head1 SUPPORT
+
+The public support forum of this module is
+L<https://perlmonks.org/>.
+
+=head1 TALKS
+
+I've given a talk about this module at Perl conferences:
+
+L<German Perl Workshop 2016, German|http://corion.net/talks/dancer-searchapp/dancer-searchapp.html>
+
+=head1 BUG TRACKER
+
+Please report bugs in this module via the RT CPAN bug queue at
+L<https://rt.cpan.org/Public/Dist/Display.html?Name=Dancer-SearchApp>
+or via mail to L<dancer-searchapp@rt.cpan.org>.
+
+=head1 AUTHOR
+
+Max Maischein C<corion@cpan.org>
+
+=head1 COPYRIGHT (c)
+
+Copyright 2014-2016 by Max Maischein C<corion@cpan.org>.
+
+=head1 LICENSE
+
+This module is released under the same terms as Perl itself.
 
 =cut

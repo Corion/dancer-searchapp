@@ -6,6 +6,9 @@ use Try::Tiny;
 use Moo;
 with 'CORION::Apache::Tika::Connection';
 
+use vars '$VERSION';
+$VERSION = '0.01';
+
 has ua => (
     is => 'ro',
     #isa => 'Str',
