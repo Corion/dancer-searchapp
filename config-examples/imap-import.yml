@@ -1,0 +1,16 @@
+# Our search data providers:
+# These should go into a crawler config instead of the web app...
+imap:
+    username: corion
+    password: "Horse Staple Battery"
+    server: example.com
+    port: 993
+    debug: 0
+    folders:
+        - "App-Blog"
+        - recurse:
+              prefix: ""
+              exclude:
+                  - "x"
+
+# end of file
