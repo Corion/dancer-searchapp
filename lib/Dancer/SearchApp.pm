@@ -21,6 +21,9 @@ Dancer::SearchApp - A simple local search engine
 =head1 QUICKSTART
 
   cpanm --look Dancer::SearchApp
+  
+  # Install prerequisites
+  cpanm --installdeps .
 
   # Install Elasticsearch https://www.elastic.co/downloads/elasticsearch
   # Start Elasticsearch
