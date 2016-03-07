@@ -18,3 +18,4 @@ Makefile$
 ^MYMETA
 ^imap-import.cmd
 ^t/documents/.*.mp3$
+^tika.cmd$
