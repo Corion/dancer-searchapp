@@ -28,7 +28,7 @@ Dancer::SearchApp - A simple local search engine
   # Install Apache Tika from https://tika.apache.org/download.html into jar/
 
   # Launch the web frontend
-  plackup -p 8080 -Ilib -a bin\app.pl
+  plackup --host 127.0.0.1 -p 8080 -Ilib -a bin\app.pl
 
   # Edit filesystem configuration
   cat >>fs-import.yml
@@ -263,3 +263,34 @@ get '/inline/:index/:type/:id' => sub {
 };
 
 true;
+
+__END__
+
+=head1 SECURITY CONSIDERATIONS
+
+=head2 Dancer::SearchApp
+
+This web front end can serve not only the extracted content but also
+the original files from your hard disk. Configure the file system crawler
+to index only data that you are comfortable with sharing with whoever
+gets access to the web server.
+
+Consider making the web server only respond on requests originating from
+127.0.0.1:
+
+  plackup --host 127.0.0.1 -p 8080 -Ilib -a bin\app.pl
+
+=head2 Elasticsearch
+
+Elasticsearch has a long history of vulnerabilities and has little to no
+concept of information segregation. This basically means that anything that
+can reach Elasticsearch can read all the data you stored in it.
+
+Configure Elasticsearch to only respond to localhost or to queries from
+within a trusted network, like your home network.
+
+Note that leaking a copy of the Elasticsearch search index is almost as
+bad as leaking a copy of the original data. This is especially true if you
+look at backups.
+
+=cut
