@@ -90,7 +90,7 @@ sub launch {
 }
 
 sub url {
-    # XXX Should return URI instead
+    # Should return URI instead
     my( $self, $type )= @_;
     $type||= 'text';
     
@@ -181,7 +181,7 @@ sub fetch {
             warn "Couldn't find body in response";
         };
         
-        $info= Apache::Tika::DocInfo->new({
+        $info= CORION::Apache::Tika::DocInfo->new({
             content => $c,
             meta => $item,
         });
@@ -204,7 +204,7 @@ sub fetch {
         };
 
         my $c = delete $res->{'X-TIKA:content'};
-        $info= Apache::Tika::DocInfo->new({
+        $info= CORION::Apache::Tika::DocInfo->new({
             meta => $res,
             content => undef,
         });
