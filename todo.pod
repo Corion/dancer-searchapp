@@ -40,9 +40,7 @@ for progressively enhancing the results page as new results become available.
 
 =head2 Java ES plugins
 
-File system crawler
-
-L<https://github.com/dadoonet/fscrawler>
+Currently better written in Perl
 
 =head2 ES Analyzers
 
@@ -58,7 +56,7 @@ Playback duration should be calculated
 
 =head3 Playlist data
 
-Playlists should get custom rendering
+Playlists should get custom rendering (album art etc.)
 
 =head2 Synonyms
 
