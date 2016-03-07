@@ -11,25 +11,30 @@ WriteMakefile(
     NAME                => 'Dancer::SearchApp',
     AUTHOR              => q{Max Maischein <corion@cpan.org>},
     VERSION_FROM        => 'lib/Dancer/SearchApp.pm',
-    ABSTRACT            => 'A simple local search engine',
+    ABSTRACT_FROM       => 'lib/Dancer/SearchApp.pm',
     ($eumm_version >= 6.3001
       ? ('LICENSE'=> 'perl')
       : ()),
     PL_FILES            => {},
     PREREQ_PM => {
+        'Exporter' => 5, # for use Exporter 'import'
+
+        'Moo' => 0, # we want some glorified hashes
+
         'Test::More' => 0,
         'YAML'       => 0,
         'Dancer'     => 1.3132,
         'Template'   => 0,
         'Search::Elasticsearch' => 2,
         'Search::Elasticsearch::Async' => 2,
+
         'Promises'   => 0,
         'Path::Class' => 0,
         'URI::file' => 0,
-        'Moo' => 0,
-        'Exporter' => 5, # for use Exporter 'import'
         'URI::file' => 0,
         'URI::Escape' => 0,
+
+        # CORION::Apache::Tika included until we spin it off
         
         # For media files
         'MP3::Tag' => 0,

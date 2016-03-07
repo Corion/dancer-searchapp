@@ -1,13 +1,11 @@
 package Dancer::SearchApp;
 use strict;
 use File::Basename;
-#use Dancer ':syntax';
 use Dancer;
 use Search::Elasticsearch::Async;
 use URI::Escape 'uri_unescape';
 use URI::file;
 #use Search::Elasticsearch::TestServer;
-#use Promises;
 
 use Dancer::SearchApp::Entry;
 
@@ -21,7 +19,40 @@ Dancer::SearchApp - A simple local search engine
 
 =head1 SYNOPSIS
 
-    plackup ...
+=head1 QUICKSTART
+
+  cpanm --look Dancer::SearchApp
+
+  # Install Elasticsearch https://www.elastic.co/downloads/elasticsearch
+  # Start Elasticsearch
+  # Install Apache Tika from https://tika.apache.org/download.html into jar/
+
+  # Launch the web frontend
+  plackup -p 8080 -Ilib -a bin\app.pl
+
+  # Edit filesystem configuration
+  cat >>fs-import.yml
+  fs:
+    directories:
+        - folder: "C:\\Users\\Corion\\Projekte\\App-StarTraders"
+          recurse: true
+          exclude:
+             - ".git"
+        - folder: "t\\documents"
+          recurse: true
+
+  # Collect some content
+  perl -Ilib -w bin/index-filesystem.pl -f
+
+  # Search in your browser
+
+=head1 CONFIGURATION
+
+Configuration happens through config.yml
+
+  elastic_search:
+    home: "./elasticsearch-2.1.1/"
+    index: "dancer-searchapp"
 
 =cut
 
