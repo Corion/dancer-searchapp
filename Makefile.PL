@@ -30,6 +30,9 @@ WriteMakefile(
         'Exporter' => 5, # for use Exporter 'import'
         'URI::file' => 0,
         'URI::Escape' => 0,
+        
+        # For media files
+        'MP3::Tag' => 0,
         },
     dist                => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
     clean               => { FILES => 'Dancer-SearchApp-*' },

@@ -34,6 +34,7 @@
                  <% ELSE %>
                   <% hit.source.content |html %>
                  <% END %>
+                  <% IF hit.source.mime_type == 'audio/mpeg' %><audio src="/inline/<% hit.index |uri%>/<%hit.type |uri%>/<% hit.id | uri | uri %>" controls="controls"></audio><% END %>
               </p>
               </div>
               <% END %>

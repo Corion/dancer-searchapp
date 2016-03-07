@@ -11,11 +11,13 @@
         <a href="/inline/<%result.index |uri%>/<%result.type |uri%>/<% result.id | uri | uri %>" >original</a>
         <a href="/open/<%result.index |uri%>/<%result.type |uri%>/<% result.id | uri | uri %>">download</a>
         <div>
-        <% IF result.basic_mime_type == 'text/plain' %><pre><% result.content |html %></pre><%
+        <% IF result.basic_mime_type == 'text/plain' %><pre><% result.content |html %></pre>
+        <% ELSE %>
+        <% IF result.basic_mime_type == 'audio/mpeg' %><audio src="/inline/<%result.index |uri%>/<%result.type |uri%>/<% result.id | uri | uri %>" controls="controls" /><%
            ELSE %>
            <!-- Until we get a proper HTML cleaner ... -->
            <% result.content |html %>
-        <% END %>
+        <% END %><% END %>
         </div>
         <a href="<% backlink |html %>">Back to results</a>
 

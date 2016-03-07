@@ -252,11 +252,29 @@ sub get_file_info {
     
     my $meta = $info->meta;
     
-    $res{ title } = $meta->{"meta:title"} || $file->basename;
-    $res{ author } = $meta->{"meta:author"}; # as HTML
-    $res{ language } = $meta->{"meta:language"};
     $res{ mime_type } = $meta->{"Content-Type"};
-    $res{ content } = $info->content; # as HTML
+    
+    if( $res{ mime_type } =~ m!^audio/mpeg$! ) {
+        require MP3::Tag;
+        my $mp3 = MP3::Tag->new($file);
+        my ($title, $track, $artist, $album, $comment, $year, $genre) = $mp3->autoinfo();
+        $res{ title } = $title || $file->basename;
+        $res{ author } = $artist;
+        $res{ language } = 'en'; # ...
+        $res{ content } = join "-", $artist, $album, $track, $comment, $genre;
+        # We should also calculate the duration here, and some more information
+        # to generate an "HTML" page for the file
+        
+    } else {
+        
+        # Just use what Tika found
+    
+        $res{ title } = $meta->{"meta:title"} || $file->basename;
+        $res{ author } = $meta->{"meta:author"}; # as HTML
+        $res{ language } = $meta->{"meta:language"};
+        $res{ content } = $info->content; # as HTML
+    }
+    
     my $ctime = (stat $file)[10];
     $res{ creation_date } = strftime('%Y-%m-%d %H:%M:%S', localtime($ctime));
     \%res
@@ -295,12 +313,8 @@ for my $folder (@folders) {
     print "Reading $folder\n";
     push @entries, map {
         # analyze file
-        # mime type
-        # extract text
-        # Apache::Tika?!
         # recurse into file parts for (ZIP) archives?!
         # SHA1
-        # language
         get_file_info($_)
     } get_entries_from_folder( $folder );
 
