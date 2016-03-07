@@ -16,7 +16,7 @@ use Path::Class;
 use URI::file;
 use POSIX 'strftime';
 
-use Dancer::SearchApp::IndexSchema qw(create_mapping);
+use Dancer::SearchApp::IndexSchema qw(create_mapping find_or_create_index %indices %analyzers );
 use Dancer::SearchApp::Utils qw(synchronous);
 
 use lib 'C:/Users/Corion/Projekte/Apache-Tika/lib';
@@ -69,7 +69,7 @@ if( ! $have_langdetect ) {
 
 # https://www.elastic.co/guide/en/elasticsearch/reference/current/analysis-lang-analyzer.html
 
-use vars qw(%analyzers %indices);
+use vars qw(%analyzers);
 
 %analyzers = (
     'de' => 'german',
@@ -100,66 +100,6 @@ synchronous $e->indices->get({index => ['*']})->then(sub{
 });
 
 warn "Index: $_\n" for grep { /^\Q$index_name/ } keys %indices;
-
-my %pending_creation;
-sub find_or_create_index {
-    my( $index_name, $lang ) = @_;
-    
-    my $res = deferred;
-    
-    my $full_name = "$index_name-$lang";
-    #warn "Initializing deferred for $full_name";
-    #warn join ",", sort keys %indices;
-    if( ! $indices{ $full_name }) {
-        #warn "Checking for '$full_name'";
-        $e->indices->exists( index => $full_name )
-        ->then( sub{
-            if( $_[0] ) { # exists
-                #warn "Full name: $full_name";
-                $res->resolve( $full_name );
-
-            # index creation in progress
-            } elsif( $pending_creation{ $full_name }) {
-                #warn "push Pending";
-                push @{ $pending_creation{ $full_name } }, $res;
-
-            # we need to create it ourselves
-            } else {
-                $pending_creation{ $full_name } = [];
-                #warn "Creating";
-                my $mapping = create_mapping($analyzers{$lang});
-                #warn Dumper $mapping;
-                $e->indices->create(index=>$full_name,
-                    body => {
-                    settings => {
-                        mapper => { dynamic => $false }, # this is "use strict;" for ES
-                        "number_of_replicas" => 0,
-                        #"analysis" => {
-                        #    "analyzer" => $analyzers{ $lang }
-                        #},
-                    },
-                    "mappings" => {
-                        # Hier muessen/sollten wir wir die einzelnen Typen definieren
-                        # https://www.elastic.co/guide/en/elasticsearch/reference/current/mapping.html
-                        'file' => $mapping,
-                    },
-                })->then(sub {
-                    my( $created ) = @_;
-                    #warn "Full name: $full_name";
-                    $res->resolve( $full_name );
-                    for( @{ $pending_creation{ $full_name }}) {
-                        $_->resolve( $full_name );
-                    };
-                    delete $pending_creation{ $full_name };
-                }, sub { warn "Couldn't create index $full_name: " . Dumper \@_});
-            };
-        });
-    } else {
-        #warn "Cached '$full_name'";
-        $res->resolve( $full_name );
-    };
-    return $res->promise
-};
 
 # Connect to cluster at search1:9200, sniff all nodes and round-robin between them:
 
@@ -332,7 +272,7 @@ for my $folder (@folders) {
             $lang->then(sub{
                 my $found_lang = $_[0]; #'en';
                 #warn "Have language '$found_lang'";
-                return find_or_create_index($index_name,$found_lang)
+                return find_or_create_index($e, $index_name,$found_lang, 'file')
             })
             ->then( sub {
                 my( $full_name ) = @_;
