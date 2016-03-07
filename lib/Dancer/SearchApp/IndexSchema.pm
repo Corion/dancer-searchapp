@@ -171,7 +171,7 @@ L<German Perl Workshop 2016, German|http://corion.net/talks/dancer-searchapp/dan
 
 Please report bugs in this module via the RT CPAN bug queue at
 L<https://rt.cpan.org/Public/Dist/Display.html?Name=Dancer-SearchApp>
-or via mail to L<dancer-searchapp@rt.cpan.org>.
+or via mail to L<dancer-searchapp-Bugs@rt.cpan.org>.
 
 =head1 AUTHOR
 

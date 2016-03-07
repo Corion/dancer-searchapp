@@ -86,7 +86,7 @@ I've given a talk about this module at Perl conferences:
 
 Please report bugs in this module via the RT CPAN bug queue at
 [https://rt.cpan.org/Public/Dist/Display.html?Name=Dancer-SearchApp](https://rt.cpan.org/Public/Dist/Display.html?Name=Dancer-SearchApp)
-or via mail to [dancer-searchapp@rt.cpan.org](https://metacpan.org/pod/dancer-searchapp@rt.cpan.org).
+or via mail to [dancer-searchapp-Bugs@rt.cpan.org](https://metacpan.org/pod/dancer-searchapp-Bugs@rt.cpan.org).
 
 # AUTHOR
 
