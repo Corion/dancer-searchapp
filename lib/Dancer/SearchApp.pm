@@ -15,6 +15,16 @@ use vars qw($VERSION $es $server);
 
 $VERSION = '0.01';
 
+=head1 NAME
+
+Dancer::SearchApp - A simple local search engine
+
+=head1 SYNOPSIS
+
+    plackup ...
+
+=cut
+
 use Data::Dumper;
 $Data::Dumper::Sortkeys = 1;
 
