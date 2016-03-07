@@ -1,6 +1,6 @@
 package Dancer::SearchApp;
 use strict;
-use File::Basename;
+use File::Basename 'basename';
 use Dancer;
 use Search::Elasticsearch::Async;
 use URI::Escape 'uri_unescape';
