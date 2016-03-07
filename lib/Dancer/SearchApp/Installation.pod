@@ -1,0 +1,35 @@
+=head1 INSTALLATION
+
+=head2 Elasticsearch
+
+Download Elasticsearch from L<https://www.elastic.co/downloads/elasticsearch>
+
+Install and launch Elasticsearch.
+
+=head2 Elasticsearch plugins
+
+=head3 Language detector
+
+L<https://github.com/jprante/elasticsearch-langdetect>
+
+  ./bin/plugin install http://xbib.org/repository/org/xbib/elasticsearch/plugin/elasticsearch-langdetect/2.1.1.0/elasticsearch-langdetect-2.1.1.0-plugin.zip
+  
+On Windows
+
+  elasticsearch-2.1.1\bin\plugin.bat install http://xbib.org/repository/org/xbib/elasticsearch/plugin/elasticsearch-langdetect/2.1.1.0/elasticsearch-langdetect-2.1.1.0-plugin.zip
+
+=head2 Apache Tika
+
+Download the Tika server from L<https://tika.apache.org/download.html>
+
+Current version is
+
+  http://www.apache.org/dyn/closer.cgi/tika/tika-server-1.12.jar
+
+Copy the JAR file into the directory C< jar/> of the distribution.
+
+=head2 Thunderbird link-by-messageid
+
+Install the "Thunderlink" plug-in / add-on for Thunderbird and
+register the C<thunderlink://> URI. This allows your browser to directly
+display emails in Thunderbird.

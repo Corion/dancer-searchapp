@@ -8,7 +8,14 @@ use JSON::MaybeXS;
 my $true = JSON->true;
 my $false = JSON->false;
 
-use vars '@EXPORT_OK';
+=head1 NAME
+
+Dancer::SearchApp::IndexSchema - schema definition for the Elasticsearch index
+
+=cut
+
+use vars '@EXPORT_OK $VERSION';
+$VERSION = '0.01';
 @EXPORT_OK = qw(create_mapping multilang_text find_or_create_index %indices %analyzers );
 
 # Datenstruktur für ES Felder, deren Sprache wir nicht kennen
@@ -32,6 +39,25 @@ sub multilang_text($$) {
     };
 };
 
+=head2 C<< create_mapping >>
+
+Defines a Dancer::SearchApp index. This is currently the following
+specification:
+
+        "properties" => {
+            "url"        => { type => "string" }, # file://-URL
+            "title"      => multilang_text('title',$analyzer),
+            "author"     => multilang_text('author', $analyzer),
+            "content"    => multilang_text('content',$analyzer),
+            'mime_type'  => { type => "string" }, # text/html etc.
+            "creation_date"    => {
+              "type"  =>  "date",
+              "format" => "yyyy-MM-dd kk:mm:ss", # yay for Joda, yet-another-timeparser-format
+            },
+        },
+
+=cut
+
 sub create_mapping {
     my( $analyzer ) = @_;
     $analyzer ||= 'english';
@@ -49,6 +75,20 @@ sub create_mapping {
         },
     };
 };
+
+=head2 C<< find_or_create_index >>
+
+  my $found = find_or_create_index( $es, $index_name, $lang, $type );
+  $found->then( sub {
+      my( $name ) = @_;
+      print "Using index '$name'\n";
+  });
+
+Returns the full name for the index C<$index_name>, concatenated with the
+language. The language is important to chose the correct stemmer. Existing
+indices will be cached in the package global variable C<%indices>.
+
+=cut
 
 use vars qw(%pending_creation %indices %analyzers );
 sub find_or_create_index {
@@ -111,3 +151,38 @@ sub find_or_create_index {
 };
 
 1;
+=head1 REPOSITORY
+
+The public repository of this module is
+L<https://github.com/Corion/dancer-searchapp>.
+
+=head1 SUPPORT
+
+The public support forum of this module is
+L<https://perlmonks.org/>.
+
+=head1 TALKS
+
+I've given a talk about this module at Perl conferences:
+
+L<German Perl Workshop 2016, German|http://corion.net/talks/dancer-searchapp/dancer-searchapp.html>
+
+=head1 BUG TRACKER
+
+Please report bugs in this module via the RT CPAN bug queue at
+L<https://rt.cpan.org/Public/Dist/Display.html?Name=Dancer-SearchApp>
+or via mail to L<dancer-searchapp@rt.cpan.org>.
+
+=head1 AUTHOR
+
+Max Maischein C<corion@cpan.org>
+
+=head1 COPYRIGHT (c)
+
+Copyright 2014-2016 by Max Maischein C<corion@cpan.org>.
+
+=head1 LICENSE
+
+This module is released under the same terms as Perl itself.
+
+=cut
