@@ -200,31 +200,41 @@ sub get_file_info {
     $res{ url } = URI::file->new( $file )->as_string;
     # Involve Apache::Tika here
     
-    my $info = $tika->get_all( $file );
-    
-    my $meta = $info->meta;
-    
-    $res{ mime_type } = $meta->{"Content-Type"};
-    
-    if( $res{ mime_type } =~ m!^audio/mpeg$! ) {
-        require MP3::Tag;
-        my $mp3 = MP3::Tag->new($file);
-        my ($title, $track, $artist, $album, $comment, $year, $genre) = $mp3->autoinfo();
-        $res{ title } = $title || $file->basename;
-        $res{ author } = $artist;
-        $res{ language } = 'en'; # ...
-        $res{ content } = join "-", $artist, $album, $track, $comment, $genre;
-        # We should also calculate the duration here, and some more information
-        # to generate an "HTML" page for the file
-        
+    eval {
+        $info = $tika->get_all( $file );
+    };
+    if( $@ ) {
+        # Einfach so indizieren
+        $res{ title } = $file->basename;
+        $res{ author } = undef;
+        $res{ language } = undef;
+        $res{ content } = undef;
     } else {
-        
-        # Just use what Tika found
     
-        $res{ title } = $meta->{"meta:title"} || $file->basename;
-        $res{ author } = $meta->{"meta:author"}; # as HTML
-        $res{ language } = $meta->{"meta:language"};
-        $res{ content } = $info->content; # as HTML
+        my $meta = $info->meta;
+        
+        $res{ mime_type } = $meta->{"Content-Type"};
+        
+        if( $res{ mime_type } =~ m!^audio/mpeg$! ) {
+            require MP3::Tag;
+            my $mp3 = MP3::Tag->new($file);
+            my ($title, $track, $artist, $album, $comment, $year, $genre) = $mp3->autoinfo();
+            $res{ title } = $title || $file->basename;
+            $res{ author } = $artist;
+            $res{ language } = 'en'; # ...
+            $res{ content } = join "-", $artist, $album, $track, $comment, $genre;
+            # We should also calculate the duration here, and some more information
+            # to generate an "HTML" page for the file
+            
+        } else {
+            
+            # Just use what Tika found
+        
+            $res{ title } = $meta->{"meta:title"} || $file->basename;
+            $res{ author } = $meta->{"meta:author"}; # as HTML
+            $res{ language } = $meta->{"meta:language"};
+            $res{ content } = $info->content; # as HTML
+        }
     }
     
     my $ctime = (stat $file)[10];
