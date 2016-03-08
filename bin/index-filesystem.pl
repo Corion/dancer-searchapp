@@ -229,11 +229,15 @@ sub get_file_info {
         } else {
             
             # Just use what Tika found
-        
+
+            use HTML::Restricted;            
+            my $p = HTML::Restricted->new();
+            my $r = $p->filter( $info->content );
+
             $res{ title } = $meta->{"meta:title"} || $file->basename;
             $res{ author } = $meta->{"meta:author"}; # as HTML
             $res{ language } = $meta->{"meta:language"};
-            $res{ content } = $info->content; # as HTML
+            $res{ content } = $r->as_HTML; # as HTML
         }
     }
     

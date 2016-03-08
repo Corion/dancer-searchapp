@@ -16,7 +16,7 @@
         <% IF result.basic_mime_type == 'audio/mpeg' %><audio src="/inline/<%result.index |uri%>/<%result.type |uri%>/<% result.id | uri | uri %>" controls="controls" /><%
            ELSE %>
            <!-- Until we get a proper HTML cleaner ... -->
-           <% result.content |html %>
+           <% result.content %>
         <% END %><% END %>
         </div>
         <a href="<% backlink |html %>">Back to results</a>
