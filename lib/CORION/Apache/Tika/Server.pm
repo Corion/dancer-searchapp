@@ -57,7 +57,7 @@ has fh => (
 
 has connection_class => (
     is => 'ro',
-    default => 'Apache::Tika::Connection::AEHTTP',
+    default => 'CORION::Apache::Tika::Connection::AEHTTP',
 );
 
 has ua => (
