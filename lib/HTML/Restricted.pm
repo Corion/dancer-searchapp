@@ -48,10 +48,10 @@ has tree_class => (
     default => 'HTML::TreeBuilder',
 );
 
-has contents => (
-    is => 'ro',
-    default => sub { +{ %contents } },
-);
+#has contents => (
+#    is => 'ro',
+#    default => sub { +{ %contents } },
+#);
 
 has allowed => (
     is => 'ro',
@@ -65,7 +65,7 @@ sub filter_element {
         $attrs = [] if ! ref $attrs;
         my %aa = map { $_ => 1 } @$attrs;
         for my $name ($elt->all_external_attr_names) {
-            warn $name;
+            #warn $name;
             $elt->attr($name => undef)
                 unless $aa{ lc $name };
         };
@@ -75,15 +75,15 @@ sub filter_element {
             next unless ref $child;
             $self->filter_element($doc, $child);
         };
-    } elsif( $self->contents->{ lc $elt->tag } ) {
-        # Replace with its contents
+    #} elsif( $self->contents->{ lc $elt->tag } ) {
+    #    # Replace with its contents#
 
-        for my $child ($elt->content_list) {
-            next unless ref $child;
-            $self->filter_element($doc, $child);
-        };
-        
-        $elt->replace_with($elt->content_list);
+     #   for my $child ($elt->content_list) {
+     #       next unless ref $child;
+     #       $self->filter_element($doc, $child);
+     #   };
+     #     
+     #   $elt->replace_with($elt->content_list);
     } else {
         print sprintf "%s: removed\n", $elt->tag;
         $elt->delete;
