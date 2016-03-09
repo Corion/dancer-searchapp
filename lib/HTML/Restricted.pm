@@ -1,4 +1,5 @@
-package HTML::Restricted;
+package # don't index this
+    HTML::Restricted;
 use strict;
 use Moo;
 use HTML::TreeBuilder 5 '-weak'; # we want weak references
