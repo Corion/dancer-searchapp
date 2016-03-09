@@ -14,6 +14,14 @@
 
 * Direct, local links to documents
 
+* Links / redirects to https? URLs
+
+* Restrict results to mime_type
+
+* Tabs with implicit restrictions/hidden queries
+
+* Search mp3 files
+
 =head3 Customization
 
 * Auto-session
@@ -50,9 +58,11 @@ Which module provides interesting video metadata?
 
 =head3 Audio data
 
-MP3s get imported but could use a nicer body rendering.
+* MP3s get imported but could use a nicer body rendering.
 
-Playback duration should be calculated
+* Playback duration should be calculated
+
+* Also import audio lyrics - how could these be linked to their mp3s?
 
 =head3 Playlist data
 
