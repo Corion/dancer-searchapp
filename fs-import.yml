@@ -6,3 +6,5 @@ fs:
              - ".git"
         - folder: "t\\documents"
           recurse: true
+        - folder: "C:\\Users\\Corion\\Talks"
+          recurse: true
