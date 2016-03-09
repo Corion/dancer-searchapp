@@ -1,3 +1,6 @@
+0.03 20160309
+    . Fix leftover references to Apache::Tika -> CORION::Apache::Tika
+
 0.02 20160307
     . Fix compilation error in Dancer::SearchApp::IndexSchema
 

@@ -3,7 +3,7 @@ use strict;
 use Moo;
 
 use vars qw($VERSION $es $server);
-$VERSION = '0.02';
+$VERSION = '0.03';
 
 =head1 NAME
 
