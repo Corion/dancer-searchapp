@@ -222,7 +222,7 @@ sub get_file_info {
             $res{ title } = $title || $file->basename;
             $res{ author } = $artist;
             $res{ language } = 'en'; # ...
-            $res{ content } = join "-", $artist, $album, $track, $comment, $genre;
+            $res{ content } = join "-", $artist, $album, $track, $comment, $genre, $file->basename, 'mp3';
             # We should also calculate the duration here, and some more information
             # to generate an "HTML" page for the file
             
