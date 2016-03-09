@@ -22,6 +22,8 @@
               <% IF hit.type == "mail" %>
               <!-- mail -->
               <a href="thunderlink://messageid=<%hit.source.messageid%>" >
+              <% ELSIF hit.type == 'http' %>
+              <a href="<% hit.source.url %>" >
               <% ELSE %>
               <!-- file -->
               <a href="/cache/<%hit.index |uri%>/<%hit.type |uri%>/<% hit.id | uri | uri %>">

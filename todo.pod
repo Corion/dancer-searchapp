@@ -52,6 +52,12 @@ Currently better written in Perl
 
 =head2 ES Analyzers
 
+=head3 FS scanner
+
+* Don't rescan/reanalyze elements that already exist in Elasticsearch
+
+* Delete entries that don't exist in the filesystem anymore
+
 =head3 Video data
 
 Which module provides interesting video metadata?

@@ -9,7 +9,7 @@
         <a href="<% backlink |html %>">Back to results</a>
         <h3><% result.title |html %></a> - <% result.creation_date |html %> <% result.language %> / <% result.basic_mime_type %></h3>
         <% IF result.type == 'http' %>
-          <a href="/inline/<%result.url %>" >original</a>
+          <a href="<% result.url %>" >original</a>
         <% ELSE %>
           <a href="/inline/<%result.index |uri%>/<%result.type |uri%>/<% result.id | uri | uri %>" >original</a>
         <% END %>

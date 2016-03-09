@@ -168,29 +168,13 @@ get '/' => sub {
     };
 };
 
-sub retrieve {
-    my( $index, $type, $id ) = @_;
-    my $document;
-    if( eval {
-        $document = search->get(index => $index, type => $type, id => $id);
-        1
-    }) {
-        my $res = Dancer::SearchApp::Entry->from_es($document);
-        return $res
-    } else {
-        warn "$@";
-    };
-    # Not found in the Elasticsearch index
-    return undef
-}
-
 # Show (cached) elements
 get '/cache/:index/:type/:id' => sub {
     my $index = params->{index};
     my $type = params->{type};
     my $id = uri_unescape( params->{id} );
     my $document = retrieve($index,$type,$id);
-    warn $document->basic_mime_type;
+    #warn $document->basic_mime_type;
     
     $document->{type} = $type;
     $document->{index} = $index;
@@ -238,18 +222,38 @@ SORRY
     }
 };
 
+sub retrieve {
+    my( $index, $type, $id ) = @_;
+    my $document;
+    if( eval {
+        $document = search->get(index => $index, type => $type, id => $id);
+        1
+    }) {
+        my $res = Dancer::SearchApp::Entry->from_es($document);
+        return $res
+    } else {
+        warn "$@";
+    };
+    # Not found in the Elasticsearch index
+    return undef
+}
+
 get '/open/:index/:type/:id' => sub {
     my $index = params->{index};
     my $type = params->{type};
     my $id = uri_unescape params->{id};
     my $document = retrieve($index,$type,$id);
-    my $local = URI::file->new( $id )->file;
-    
-    reproxy( $document, $local, 'Attachment',
-        index => $index,
-        type => $type,
-    );
-    
+    if( $type eq 'http' ) {
+        return
+            redirect $id
+    } else {
+        my $local = URI::file->new( $id )->file;
+        return
+        reproxy( $document, $local, 'Attachment',
+            index => $index,
+            type => $type,
+        );
+    }
 };
 
 get '/inline/:index/:type/:id' => sub {
@@ -257,7 +261,13 @@ get '/inline/:index/:type/:id' => sub {
     my $type = params->{type};
     my $id = uri_unescape params->{id};
     my $document = retrieve($index,$type,$id);
-    my $local = URI::file->new( $id )->file;
+    
+    my $local;
+    if( 'http' eq $type ) {
+        $document->content
+    } else {
+        $local = URI::file->new( $id )->file;
+    };
     
     reproxy( $document, $local, 'Inline',
         index => $index,

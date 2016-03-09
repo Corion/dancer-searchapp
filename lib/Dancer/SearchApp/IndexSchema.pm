@@ -14,9 +14,11 @@ Dancer::SearchApp::IndexSchema - schema definition for the Elasticsearch index
 
 =cut
 
-use vars qw(@EXPORT_OK $VERSION);
+use vars qw(@EXPORT_OK $VERSION @types);
 $VERSION = '0.03';
 @EXPORT_OK = qw(create_mapping multilang_text find_or_create_index %indices %analyzers );
+
+@types = (qw(file mail http));
 
 # Datenstruktur für ES Felder, deren Sprache wir nicht kennen
 sub multilang_text($$) {
@@ -118,6 +120,7 @@ sub find_or_create_index {
                 #warn "Creating";
                 my $mapping = create_mapping($analyzers{$lang});
                 #warn Dumper $mapping;
+                my @typemap = map { $_ => $mapping } @types;
                 $e->indices->create(index=>$full_name,
                     body => {
                     settings => {
@@ -130,7 +133,9 @@ sub find_or_create_index {
                     "mappings" => {
                         # Hier muessen/sollten wir wir die einzelnen Typen definieren
                         # https://www.elastic.co/guide/en/elasticsearch/reference/current/mapping.html
-                        $type => $mapping,
+                        #$type => $mapping,
+                        # One schema fits all
+                        @typemap,       
                     },
                 })->then(sub {
                     my( $created ) = @_;

@@ -198,7 +198,6 @@ sub get_file_info {
     my( $file ) = @_;
     my %res;
     $res{ url } = URI::file->new( $file )->as_string;
-    # Involve Apache::Tika here
     
     eval {
         $info = $tika->get_all( $file );
@@ -268,6 +267,9 @@ sub detect_language {
         $res = $res->promise
     }
     $res
+}
+
+sub url_stored {
 }
 
 if( @ARGV) {

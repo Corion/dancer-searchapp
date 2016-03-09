@@ -305,7 +305,7 @@ for my $folder (@folders) {
                 #warn "Storing document into $full_name";
                 $e->index({
                         index   => $full_name,
-                        type    => 'file', # or 'attachment' ?!
+                        type    => 'http', # or 'attachment' ?!
                         id      => $msg->{url}, # we want to overwrite
                         # index bcc, cc, to, from
                         body    => $msg # "body" for non-bulk, "source" for bulk ...
