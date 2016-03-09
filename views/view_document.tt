@@ -8,7 +8,11 @@
         </form>
         <a href="<% backlink |html %>">Back to results</a>
         <h3><% result.title |html %></a> - <% result.creation_date |html %> <% result.language %> / <% result.basic_mime_type %></h3>
-        <a href="/inline/<%result.index |uri%>/<%result.type |uri%>/<% result.id | uri | uri %>" >original</a>
+        <% IF result.type == 'http' %>
+          <a href="/inline/<%result.url %>" >original</a>
+        <% ELSE %>
+          <a href="/inline/<%result.index |uri%>/<%result.type |uri%>/<% result.id | uri | uri %>" >original</a>
+        <% END %>
         <a href="/open/<%result.index |uri%>/<%result.type |uri%>/<% result.id | uri | uri %>">download</a>
         <div>
         <% IF result.basic_mime_type == 'text/plain' %><pre><% result.content |html %></pre>
