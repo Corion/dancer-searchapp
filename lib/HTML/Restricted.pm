@@ -3,6 +3,21 @@ use strict;
 use Moo;
 use HTML::TreeBuilder 5 '-weak'; # we want weak references
 
+=head1 NAME
+
+HTML::Restricted - filter HTML to a set of allowed tags and attributes
+
+=head1 WHY?
+
+This is just a band-aid module I needed while without internet connection.
+There also are L<HTML::Strip> and some other modules that should do the
+same task and this module will likely vanish again when I review the others
+and decide on using one.
+
+Don't rely on this module.
+
+=cut
+
 # Clean up HTML so it doesn't contain anything bad
 # Lets through only a predefined set of HTML tags
 # and a predefined set of attributes
