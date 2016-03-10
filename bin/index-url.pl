@@ -2,7 +2,8 @@
 use strict;
 use AnyEvent;
 use Search::Elasticsearch::Async;
-use Promises qw[collect deferred];
+use Promises ['AE'], qw[collect deferred];
+use Promises::RateLimiter;
 
 use Getopt::Long;
 
@@ -302,7 +303,7 @@ if( $url_file ) {
 }
 
 my %active;
-my $limit = 20;
+my $limit = 2;
 my %allowed_hosts;
 
 while( @url_list or %active) {
@@ -359,6 +360,7 @@ while( @url_list or %active) {
         });
         #$importer->flush;
     } else {
+        print "Limit of $in_flight simultaneous URLs reached, waiting.\n";
         # Do nothing
         my $continue = AnyEvent->condvar;
         my $w = AnyEvent->timer(after => 1, cb => $continue);
