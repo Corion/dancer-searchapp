@@ -63,18 +63,13 @@ $Data::Dumper::Sortkeys = 1;
 
 sub search {
     if( ! $es ) {
-        #my $nodes;
-        #if( config->{elastic_search}) {
-        #    my $es_home = config->{elastic_search}->{home};
-        #    warning "Starting local ElasticSearch instance in $es_home";
-        #    $server ||= Search::Elasticsearch::TestServer->new(
-        #        es_home   => $es_home,
-        #    );
-
-            #$nodes = $server->start;
-        #};
+        my $nodes = $ENV{SEARCHAPP_ES_NODES};
+        $nodes = [ split /;/, $nodes ];
+        if( ! $nodes ) {
+            $nodes = config->{nodes} || [];
+        };
         $es = Search::Elasticsearch->new(
-            nodes => config->{nodes} || [],
+            nodes => $nodes,
         );
     };
     
