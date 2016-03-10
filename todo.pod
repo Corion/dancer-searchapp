@@ -1,5 +1,19 @@
 =head1 TO DO
 
+=head2 Name
+
+* Come up with a good name
+
+* YODA (from the image in the talk)?
+
+* "Answers you seek?"
+
+=head2 Distribution
+
+* Docker container
+
+* ulimit for crawling processes
+
 =head2 Pages
 
 =head3 Search page
