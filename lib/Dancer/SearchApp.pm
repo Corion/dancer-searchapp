@@ -104,6 +104,13 @@ get '/' => sub {
         %indices = %{ search->indices->get({index => ['*']}) };
         warning $_ for sort keys %indices;
 
+        my @restrict_type;
+        if( my $type = params->{'type'}) {
+        warn "Filtering for '$type'";
+            @restrict_type = (filter => { term => { mime_type => $type }})
+                if $type =~ m!^(\w+)/(\S+)!;
+        };
+        
         # Move this to an async query, later
         my $search_term = params->{'q'};
         my $index = config->{elastic_search}->{index};
@@ -114,9 +121,14 @@ get '/' => sub {
                 from => $from,
                 size => $size,
                 query => {
-                    query_string => {
-                        query => $search_term,
-                        fields => ['title','content', 'author'] #'creation_date'] 
+                    filtered => {
+                        query => {
+                            query_string => {
+                                query => $search_term,
+                                fields => ['title','content', 'author'] #'creation_date'] 
+                            },
+                        },
+                        @restrict_type,
                     },
                 },
                 sort => {
