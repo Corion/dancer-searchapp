@@ -15,6 +15,7 @@ use YAML 'LoadFile';
 
 use Path::Class;
 use URI::file;
+use URI::URL;
 use POSIX 'strftime';
 
 use Dancer::SearchApp::IndexSchema qw(create_mapping find_or_create_index %indices %analyzers );
@@ -36,7 +37,8 @@ my $false = JSON->false;
 
 GetOptions(
     'force|f' => \my $force_rebuild,
-    'config|c' => \my $config_file,
+    'config|c:s' => \my $config_file,
+    'url-file|I:s' => \my $url_file,
 );
 #$config_file ||= 'url-import.yml';
 
@@ -54,7 +56,7 @@ my $e = Search::Elasticsearch::Async->new(
     #trace_to => 'Stderr',
 );
 
-my $tika_glob = 'C:/Users/Corion/Projekte/Apache-Tika/jar/tika-server-*.jar';
+my $tika_glob = 'jar/tika-server-*.jar';
 my $tika_path = (sort { my $ad; $a =~ /server-1.(\d+)/ and $ad=$1;
                 my $bd; $b =~ /server-1.(\d+)/ and $bd=$1;
                 $bd <=> $ad
@@ -172,6 +174,11 @@ sub get_selector {
     }
 }
 
+sub abs_url {
+    my( $new, $base ) = @_;
+    "" . URI::URL->new( $new, $base )->abs
+}
+
 sub get_document_info {
     my( $url, $html ) = @_;
     my %res;
@@ -214,9 +221,10 @@ sub get_document_info {
             # Just use what FTR found
 
             use HTML::Restricted;            
-            my $p = HTML::Restricted->new();
+            my $p = HTML::Restricted->new(tree_class => 'HTML::TreeBuilder::XPath');
             my $r = $p->filter( $html );
 
+            $res{ references } = [map { abs_url( $_->attr('href'), $url ) } $r->findnodes('//a[@href]')];
             $res{ title } = $title || $url;
             $res{ author } = "online"; # as HTML
             $res{ language } = ''; ## $meta->{"meta:language"};
@@ -259,6 +267,7 @@ sub http_fetch {
     my $d = deferred;
     http_get $uri => sub {
         my ($body, $headers) = @_;
+        print "[$headers->{Status}] $uri\n";
         $headers->{Status} == 200
             ? $d->resolve( $body )
             : $d->reject( $body )
@@ -266,37 +275,64 @@ sub http_fetch {
     $d->promise;
 }
 
-my @folders = @ARGV;
-for my $folder (@folders) {
-    my @entries;
-    print "Reading $folder\n";
-    my( $mapped )= synchronous collect(map {
-        # analyze file
-        # recurse into file parts for (ZIP) archives?!
-        # SHA1
-        my $url = $_;
-        http_fetch($url)->then(sub {
-            my( $content ) = @_;
-            get_document_info($url,$content)
-        });
-    } get_entries_from_folder( $folder ));
-    
-    push @entries, @$mapped;
-    
-    my $done = AnyEvent->condvar;
+# Our store for URLs we've already added to be fetched
+my %url_seen;
 
-    # Importieren
-    print sprintf "Importing %d messages\n", 0+@entries;
-    collect(
-        map {
-            my $msg = $_;
+sub enqueue_url {
+    my( $queue, @urls ) = @_;
+    for my $url (@urls) {
+        push @$queue, $url
+            unless $url_seen{ $url }++;
+    }
+}
+
+sub dequeue_url {
+    my( $queue ) = @_;
+    shift @$queue;
+}
+
+my @url_list;
+if( $url_file ) {
+    open my $fh, '<', $url_file
+        or die "Couldn't read URLs from '$url_file'";
+    @url_list = <$fh>;
+    s!\s+$!! for @url_list;
+} else {
+    @url_list = @ARGV;
+}
+
+my %active;
+my $limit = 20;
+my %allowed_hosts;
+
+while( @url_list or %active) {
+    # How do we prevent more than 20 promises in flight?!
+    my $in_flight = () = keys %active;
+    if( $in_flight < $limit and @url_list ) {
+        my $url = dequeue_url(\@url_list);
+        $active{ $url } = 1;
+
+        my $content = http_fetch($url)->then(sub {
+            my( $content ) = @_;
+            my $info = get_document_info($url,$content);
+            
+            # Extract and enqueue links if wanted
+            # ...
+            if( my $more = delete $info->{references}) {
+                # We should check whether we are in the list of allowed hosts
+                enqueue_url(\@url_list, @{ $more });
+            };
+            
+            return $info
+        })->then(sub {
+            my $msg = $_[0];
             my $body = $msg->{content};
             
             my $lang = detect_language($body, $msg);
             
             $lang->then(sub{
                 my $found_lang = $_[0]; #'en';
-                return find_or_create_index($e, $index_name,$found_lang, 'file')
+                return find_or_create_index($e, $index_name,$found_lang)
             })
             ->then( sub {
                 my( $full_name ) = @_;
@@ -314,13 +350,19 @@ for my $folder (@folders) {
                })->then(sub{
                    #warn "Done."
                }, sub {warn $_ for @_ });
-       } @entries
-    )->then(sub {
-        print "$folder done\n";
-        $done->send;
-    });
-    
-    $done->recv;
-    #$importer->flush;
+        })->then(sub {
+            print "$url done\n";
+        })->catch(sub {
+            print "$url: Error: @_"; 
+        })->finally(sub{
+            delete $active{$url};
+        });
+        #$importer->flush;
+    } else {
+        # Do nothing
+        my $continue = AnyEvent->condvar;
+        my $w = AnyEvent->timer(after => 1, cb => $continue);
+        $continue->recv;
+    };
 };
 #$importer->flush;
