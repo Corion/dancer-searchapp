@@ -18,21 +18,20 @@ There also are L<HTML::Strip> and some other modules that should do the
 same task and this module will likely vanish again when I review the others
 and decide on using one.
 
+L<HTML::StripScripts> seems a likely alternative to this module.
+
+Currently, attributes are not cleaned up
+
 Don't rely on this module.
 
 =cut
-
-# Clean up HTML so it doesn't contain anything bad
-# Lets through only a predefined set of HTML tags
-# and a predefined set of attributes
-# This also enforces properly nested HTML, thanks to TreeBuilder.
-
-# How will we handle outside links?!
 
 use vars qw(%allowed);
 
 %allowed = (
     a      => ['href','name'],
+    abbr    => 1,
+    address => 1,
     b      => 1,
     blockquote => 1,
     body   => 1,
@@ -55,21 +54,23 @@ use vars qw(%allowed);
     i     => 1,
     img   => ['src'],
     input => 1,
+    label  => 1,
     li    => 1,
     ol    => 1,
     option => ['value'],
-    p     => 1,
-    pre   => 1,
+    p      => 1,
+    pre    => 1,
+    small  => 1,
     select => 1,
-    span  => 1,
+    span   => 1,
     strong => 1,
-    table => 1,
-    tbody => 1,
-    td    => 1,
-    th    => 1,
-    tr    => 1,
-    tt    => 1,
-    ul    => 1,
+    table  => 1,
+    tbody  => 1,
+    td     => 1,
+    th     => 1,
+    tr     => 1,
+    tt     => 1,
+    ul     => 1,
 );
 
 has tree_class => (
