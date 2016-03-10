@@ -69,7 +69,7 @@ sub create_mapping {
             "title"      => multilang_text('title',$analyzer),
             "author"     => multilang_text('author', $analyzer),
             "content"    => multilang_text('content',$analyzer),
-            'mime_type'  => { type => "string" }, # text/html etc.
+            'mime_type'  => { type => "string", index => 'not_analyzed' }, # text/html etc.
             "creation_date"    => {
               "type"  =>  "date",
               "format" => "yyyy-MM-dd kk:mm:ss", # yay for Joda, yet-another-timeparser-format
