@@ -10,8 +10,6 @@
 
 =head2 Distribution
 
-* Docker container
-
 * ulimit for crawling processes
 
 =head2 Pages
