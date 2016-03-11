@@ -1,5 +1,25 @@
 =head1 INSTALLATION
 
+=head2 Docker image
+
+There is a Dockerfile using which you can easily create a Docker container
+containing the search engine and Apache Tika. It needs an external
+Elasticsearch instance, for example the "elasticsearch" Docker image.
+
+=head3 Building from the Dockerimage
+
+  cpanm --look Dancer-SearchApp
+  cd docker
+  docker build .
+
+=head3 Docker image configuration
+
+You pass the IP address and port of the Elasticsearch instance to the
+search engine using the C<< --env >> parameter when starting the Docker
+image:
+
+  docker run --env SEARCHAPP_ES_NODES=192.168.99.1:9200 -P dsa
+
 =head2 Elasticsearch
 
 Download Elasticsearch from L<https://www.elastic.co/downloads/elasticsearch>
