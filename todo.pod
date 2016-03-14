@@ -129,4 +129,20 @@ German translation 'Geldmarktstatistik'.
 
 * Create screencasts using L<http://www.openshot.org/videos/> or
 
+=head1 Code structure
+
+=head2 Crawlers
+
+* Create tree-structure-importer
+
+Both IMAP and file systems are basically directed graphs and far easier
+to crawl than the cyclic graphs of web pages. Abstract out the crawling
+of a tree into a common module.
+
+* Turn C<index-imap> and C<index-filesystem> into modules so they
+become independent of being called from an outside shell.
+
+This also implies they become runnable directly from the web interface
+without an intermediate shell.
+
 =cut
