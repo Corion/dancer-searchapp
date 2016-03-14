@@ -10,9 +10,15 @@
 
 =head2 Distribution
 
-* Docker container
+=head3 Docker
 
 * ulimit for crawling processes
+
+=head3 Windows distribution
+
+* C<.msi> package including Perl, Apache Tika and Elasticsearch
+
+* Debian package
 
 =head2 Pages
 
@@ -24,17 +30,11 @@
 
 =head3 Simple (HTML) Results page
 
-* Excerpts
-
-* Direct, local links to documents
-
-* Links / redirects to https? URLs
-
-* Restrict results to mime_type
-
 * Tabs with implicit restrictions/hidden queries
 
 * Search mp3 files
+
+* Search images
 
 =head3 Customization
 

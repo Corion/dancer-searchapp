@@ -1,0 +1,24 @@
+=head1 FEATURES
+
+=head2 Pages
+
+=head3 Search page (C</>)
+
+* Simple search
+
+=head3 Result page (C</q=foo>)
+
+Document excerpts, even highlighted
+
+Direct, local links to documents
+
+Links / redirects to external https? URLs
+
+Restrict results to mime_type
+
+=head2 Distribution
+
+=head3 Docker
+
+Docker container
+
