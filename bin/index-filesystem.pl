@@ -2,6 +2,7 @@
 use strict;
 use AnyEvent;
 use Search::Elasticsearch::Async;
+use Dancer::SearchApp::Defaults 'default_index';
 use Promises qw[collect deferred];
 
 use Getopt::Long;
@@ -45,9 +46,10 @@ GetOptions(
 );
 $config_file ||= 'fs-import.yml';
 
-my $config = LoadFile($config_file)->{fs};
+my $config = LoadFile($config_file);
 
-my $index_name = 'dancer-searchapp';
+my $index_name = $config->{index} || default_index;
+$config = $config->{fs};
 
 my $e = Search::Elasticsearch::Async->new(
     nodes => [

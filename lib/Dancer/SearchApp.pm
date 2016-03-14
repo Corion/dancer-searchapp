@@ -7,6 +7,8 @@ use URI::Escape 'uri_unescape';
 use URI::file;
 #use Search::Elasticsearch::TestServer;
 
+use Dancer::SearchApp::Defaults 'default_index';
+
 use Dancer::SearchApp::Entry;
 
 use vars qw($VERSION $es %indices);
@@ -100,15 +102,15 @@ get '/' => sub {
         warning $_ for sort keys %indices;
 
         my @restrict_type;
-        if( my $type = params->{'type'} and $type =~ m!([a-z0-9+-]+)/[a-z0-9+-]+!i) {
+        my $type;
+        if( $type = params->{'type'} and $type =~ m!([a-z0-9+-]+)/[a-z0-9+-]+!i) {
             #warn "Filtering for '$type'";
-            @restrict_type = (filter => { term => { mime_type => $type }})
-                if $type =~ m!^(\w+)/(\S+)!;
+            @restrict_type = (filter => { term => { mime_type => $type }});
         };
         
         # Move this to an async query, later
         my $search_term = params->{'q'};
-        my $index = config->{elastic_search}->{index};
+        my $index = config->{elastic_search}->{index} || default_index;
         $results = search->search(
             # Wir suchen in allen Sprachindices
             index => [ grep { /^\Q$index\E/ } sort keys %indices ],

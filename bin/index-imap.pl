@@ -4,7 +4,7 @@ use AnyEvent;
 use Search::Elasticsearch::Async;
 use Promises qw[collect deferred];
 
-use Mail::IMAPClient;
+use Dancer::SearchApp::Defaults 'default_index';
 use Getopt::Long;
 use Mail::IMAPClient;
 
@@ -36,9 +36,10 @@ $config_file ||= 'imap-import.yml';
 
 # Round-robin between two nodes:
 
-my $config = LoadFile($config_file)->{imap};
+my $config = LoadFile($config_file);
+my $index_name = $config->{index} || default_index;
+$config = $config->{imap};
 
-my $index_name = 'elasticsearch';
 
 my $e = Search::Elasticsearch::Async->new(
     nodes => [
@@ -82,13 +83,7 @@ warn "Index: $_\n" for grep { /^\Q$index_name/ } keys %indices;
 # Erstellt einen Mail-Index mit der passenden Sprache
 # https://www.elastic.co/guide/en/elasticsearch/reference/current/analysis-lang-analyzer.html
 
-use vars qw(%analyzers %indices);
-
-%analyzers = (
-    'de' => 'german',
-    'en' => 'english',
-    'ro' => 'english', # I don't speak "romanian"
-);
+use vars qw(%indices);
 
 print "Reading ES indices\n";
 my $indices_done = AnyEvent->condvar;
