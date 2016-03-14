@@ -5,7 +5,7 @@ use AnyEvent;
 
 use vars qw(@EXPORT_OK $VERSION);
 $VERSION = '0.03';
-@EXPORT_OK = (qw(synchronous));
+@EXPORT_OK = (qw(await));
 
 =head1 NAME
 
@@ -13,7 +13,7 @@ Dancer::SearchApp::Utils - helper routines
 
 =head1 EXPORTS
 
-=head2 C<< synchronous >>
+=head2 C<< await >>
 
   sub some_routine {
       my $p = deferred;
@@ -21,7 +21,7 @@ Dancer::SearchApp::Utils - helper routines
       $p->promise
   }
 
-  my $result = synchronous some_routine( ... );
+  my $result = await some_routine( ... );
   print $result;
 
 Waits for a promise to be fulfilled. Needs L<AnyEvent>
@@ -29,7 +29,7 @@ to wait for a promise.
 
 =cut
 
-sub synchronous($) {
+sub await($) {
     my $promise = $_[0];
     my @res;
     if( $promise->is_unfulfilled ) {

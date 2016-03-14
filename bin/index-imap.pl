@@ -18,7 +18,7 @@ use Data::Dumper;
 use YAML 'LoadFile';
 
 use Dancer::SearchApp::IndexSchema qw(create_mapping find_or_create_index %indices %analyzers );
-use Dancer::SearchApp::Utils qw(synchronous);
+use Dancer::SearchApp::Utils qw(await);
 
 use JSON::MaybeXS;
 my $true = JSON->true;
@@ -62,18 +62,18 @@ my $e = Search::Elasticsearch::Async->new(
 if( $force_rebuild ) {
     print "Dropping indices\n";
     my @list;
-    synchronous $e->indices->get({index => ['*']})->then(sub{
+    await $e->indices->get({index => ['*']})->then(sub{
         @list = grep { /^\Q$index_name/ } sort keys %{ $_[0]};
     });
 
-    synchronous collect( map { my $n=$_; $e->indices->delete( index => $n )->then(sub{warn "$n dropped" }) } @list )->then(sub{
+    await collect( map { my $n=$_; $e->indices->delete( index => $n )->then(sub{warn "$n dropped" }) } @list )->then(sub{
         warn "Index cleanup complete";
         %indices = ();
     });
 };
 
 print "Reading ES indices\n";
-synchronous $e->indices->get({index => ['*']})->then(sub{
+await $e->indices->get({index => ['*']})->then(sub{
     %indices = %{ $_[0]};
 });
 
