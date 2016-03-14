@@ -20,7 +20,8 @@ and decide on using one.
 
 L<HTML::StripScripts> seems a likely alternative to this module.
 
-Currently, attributes are not cleaned up
+Currently, attributes are not cleaned up. Also, HTML5 tags are simply
+stripped as this module doesn't use L<HTML::HTML5::Parser>.
 
 Don't rely on this module.
 
