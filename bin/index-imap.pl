@@ -258,7 +258,9 @@ for my $folder (@folders) {
     my @messages;
     print "Reading $folder\n";
     push @messages, map {
-        App::ImapBlog::Entry->from_imap_client(imap(), $_);
+        App::ImapBlog::Entry->from_imap_client(imap(), $_,
+            folder => $folder
+        );
     } get_messages_from_folder( $folder );
 
     my $done = AnyEvent->condvar;
@@ -292,11 +294,12 @@ for my $folder (@folders) {
                         # content-type, ...
                         body    => { # "body" for non-bulk, "source" for bulk ...
                         #source    => {
-                            messageid => $msg->messageid,
-                            subject => $msg->subject,
-                            from    => $msg->from,
-                            to      => [ $msg->recipients ],
-                            content => $body,
+                            url       => $msg->messageid,
+                            title     => $msg->subject,
+                            folder    => $msg->{folder},
+                            #from    => $msg->from,
+                            #to      => [ $msg->recipients ],
+                            content => "From: " . $msg->from .  " To: " . join( ",", $msg->recipients ) . "\n" . $body,
                             language => $lang,
                             date    => $msg->date->strftime('%Y-%m-%d %H:%M:%S'),
                         }

@@ -123,7 +123,7 @@ get '/' => sub {
                         query => {
                             query_string => {
                                 query => $search_term,
-                                fields => ['title','content', 'author'] #'creation_date'] 
+                                fields => ['title','folder','content', 'author'] #'creation_date'] 
                             },
                         },
                         @restrict_type,

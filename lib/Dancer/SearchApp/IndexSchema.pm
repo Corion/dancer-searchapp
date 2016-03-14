@@ -69,6 +69,7 @@ sub create_mapping {
             "title"      => multilang_text('title',$analyzer),
             "author"     => multilang_text('author', $analyzer),
             "content"    => multilang_text('content',$analyzer),
+            'folder'     => multilang_text('folder',$analyzer),
             'mime_type'  => { type => "string", index => 'not_analyzed' }, # text/html etc.
             "creation_date"    => {
               "type"  =>  "date",

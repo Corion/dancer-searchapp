@@ -40,6 +40,8 @@ or a glorified hash.
 
 =head2 C<< ->title >>
 
+=head2 C<< ->folder >>
+
 =head2 C<< ->language >>
 
 =cut
@@ -73,6 +75,11 @@ has content => (
 );
 
 has title => (
+    is => 'ro',
+    #isa => 'Str',
+);
+
+has folder => (
     is => 'ro',
     #isa => 'Str',
 );

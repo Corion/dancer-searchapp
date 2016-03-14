@@ -200,6 +200,8 @@ sub get_file_info {
     my( $file ) = @_;
     my %res;
     $res{ url } = URI::file->new( $file )->as_string;
+    $res{ folder } = "" . $file->dir;
+    $res{ folder } =~ s![\\/ ]! !g;
     
     eval {
         $info = $tika->get_all( $file );
