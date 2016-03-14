@@ -42,6 +42,11 @@
 
 * Refinement using the last search, if the last search was "recently"
 
+=head2 Plack
+
+* Plack-hook/example for C</search> to tie up the search application
+into arbitrary websites
+
 =head2 Dancer
 
 * ElasticSearch plugin / configuration through YAML
@@ -87,6 +92,12 @@ Which module provides interesting video metadata?
 =head3 Playlist data
 
 Playlists should get custom rendering (album art etc.)
+
+=head2 Test data
+
+* Consider importing a Wikipedia dump
+
+* Some other larger, mixed corpus, like http://eur-lex.europa.eu/
 
 =head2 Synonyms
 
