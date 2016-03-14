@@ -15,6 +15,9 @@ RUN git clone git://192.168.99.1/Dancer-SearchApp
 # Install Tika
 RUN mkdir Dancer-SearchApp/jar && curl http://www.apache.org/dyn/closer.cgi/tika/tika-server-1.12.jar -o Dancer-SearchApp/jar/tika-server-1.12.jar
 
+# Install Elasticsearch
+# + Language detection plugin
+
 # Install App prerequisites
 RUN cd Dancer-SearchApp && cpanm --installdeps .
 
