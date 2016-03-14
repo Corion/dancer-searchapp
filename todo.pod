@@ -65,6 +65,13 @@ work network is available.
 This calls for using the asynchronous API not only for searching but also
 for progressively enhancing the results page as new results become available.
 
+=head2 Recognizing new versions of old documents
+
+How can we/Elasticsearch recognize similarity between two documents?
+
+If two documents live in the same directory, the newest one should take
+precedence and fold the similar documents below it.
+
 =head2 Java ES plugins
 
 Currently better written in Perl
