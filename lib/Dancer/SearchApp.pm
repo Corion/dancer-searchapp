@@ -65,9 +65,10 @@ $Data::Dumper::Sortkeys = 1;
 
 sub search {
     if( ! $es ) {
-        my $nodes = $ENV{SEARCHAPP_ES_NODES};
-        $nodes = [ split /;/, $nodes ];
-        if( ! $nodes ) {
+        my $nodes;
+        if( $nodes = $ENV{SEARCHAPP_ES_NODES} ) {
+            $nodes = [ split /;/, $nodes ];
+        } else {
             $nodes = config->{nodes} || [];
         };
         $es = Search::Elasticsearch->new(
