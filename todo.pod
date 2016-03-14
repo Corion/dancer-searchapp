@@ -47,7 +47,7 @@ currently.
 
 =head2 Plack
 
-* Plack-hook/example for C</search> to tie up the search application
+* L<Plack>-hook/example for C</search> to tie up the search application
 into arbitrary websites
 
 =head2 Dancer
@@ -133,6 +133,9 @@ German translation 'Geldmarktstatistik'.
 
 =head2 Crawlers
 
+* Create Dancer-crawler - skip the HTTP generation process
+and reuse C<App::Wallflower> for crawling a Dancer website.
+
 * Create tree-structure-importer
 
 Both IMAP and file systems are basically directed graphs and far easier
@@ -144,5 +147,7 @@ become independent of being called from an outside shell.
 
 This also implies they become runnable directly from the web interface
 without an intermediate shell.
+
+* Add attachment import to the imap crawler
 
 =cut
