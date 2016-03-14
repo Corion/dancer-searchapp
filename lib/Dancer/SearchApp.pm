@@ -100,8 +100,8 @@ get '/' => sub {
         warning $_ for sort keys %indices;
 
         my @restrict_type;
-        if( my $type = params->{'type'}) {
-        warn "Filtering for '$type'";
+        if( my $type = params->{'type'} and $type =~ m!([a-z0-9+-]+)/[a-z0-9+-]+!i) {
+            #warn "Filtering for '$type'";
             @restrict_type = (filter => { term => { mime_type => $type }})
                 if $type =~ m!^(\w+)/(\S+)!;
         };

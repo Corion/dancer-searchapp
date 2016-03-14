@@ -30,10 +30,6 @@
 
 =head3 Simple (HTML) Results page
 
-* Tabs with implicit restrictions/hidden queries
-
-* Search mp3 files
-
 * Search images
 
 =head3 Customization

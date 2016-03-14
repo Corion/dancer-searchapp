@@ -3,10 +3,11 @@
         <div id="header">
           <h1>Search results</h1>
         </div>
-        <a href="<%params.q|html%>;type=audio%2fmpeg">Audio Files</a>
+        <a href="<% request.uri_for( '/', { q => params.q, type => "" }) %>">All Files</a>
+        <a href="<% request.uri_for( '/', { q => params.q, type => "audio/mpeg" }) %>">Audio Files</a>
         <form action="/" 	method="GET" enctype="multipart/form-data">
         <input type="text" name="q" value="<% params.q |html %>">
-        <input type="hidden" value="<% params.type %>">
+        <input type="hidden" name="type" value="<% params.type %>">
         </form>
         <% IF statistics %>
         <div><h2>Statistics</h2>
