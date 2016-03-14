@@ -32,6 +32,13 @@
 
 * Search images
 
+=head3 Result fragment / document rendering
+
+Come up with a concept to render different mime types differently.
+
+Ideally, this would avoid the hardcoding we use for C<< audio/mpeg >>
+currently.
+
 =head3 Customization
 
 * Auto-session
@@ -95,6 +102,8 @@ Which module provides interesting video metadata?
 =head3 Playlist data
 
 Playlists should get custom rendering (album art etc.)
+
+Playlists should ideally also hotlink their contents
 
 =head2 Test data
 
