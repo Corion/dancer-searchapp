@@ -118,4 +118,10 @@ also seems interesting.
 We want to treat some synonyms as identical though, like 'MMSR' and its
 German translation 'Geldmarktstatistik'.
 
+=head1 User Introduction
+
+=head2 Videos
+
+* Create screencasts using L<http://www.openshot.org/videos/> or
+
 =cut
