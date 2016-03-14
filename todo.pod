@@ -150,4 +150,8 @@ without an intermediate shell.
 
 * Add attachment import to the imap crawler
 
+=head2 Metasearch
+
+Implement metasearch across multiple ES instances
+
 =cut
