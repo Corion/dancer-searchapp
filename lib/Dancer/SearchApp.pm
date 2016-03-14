@@ -89,18 +89,17 @@ get '/' => sub {
     my $statistics;
     my $results;
     
-    my $from = params->{'from'} || '';
+    my $from = params->{'from'} || 0;
     $from =~ s!\D!!g;
-    $from ||= 0;
-    my $size = params->{'size'} || '';
+    my $size = params->{'size'} || 25;
     $size =~ s!\D!!g;
-    $size ||= 10;
+    my $search_term = params->{'q'};
     
-    if( defined params->{'q'}) {
+    if( defined $search_term) {
         
-        warning "Reading ES indices\n";
+        #warning "Reading ES indices\n";
         %indices = %{ search->indices->get({index => ['*']}) };
-        warning $_ for sort keys %indices;
+        #warning $_ for sort keys %indices;
 
         my @restrict_type;
         my $type;
@@ -110,7 +109,6 @@ get '/' => sub {
         };
         
         # Move this to an async query, later
-        my $search_term = params->{'q'};
         my $index = config->{elastic_search}->{index} || default_index;
         $results = search->search(
             # Wir suchen in allen Sprachindices
@@ -171,7 +169,7 @@ get '/' => sub {
     template 'index', {
             results => ($results ? $results->{hits} : undef ),
             params => {
-                q=> params()->{q},
+                q    => $search_term,
                 from => $from,
                 size => $size,
             },
