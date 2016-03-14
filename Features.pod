@@ -16,6 +16,10 @@ Links / redirects to external https? URLs
 
 Restrict results to mime_type
 
+Tabs with implicit restrictions/hidden queries
+
+Search mp3 files
+
 =head2 Distribution
 
 =head3 Docker
