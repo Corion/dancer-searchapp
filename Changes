@@ -1,4 +1,4 @@
-0.04 2016015
+0.04 20160315
     . First stab at a rough (rough) HTTP URL importer
     . Allow image metadata to be indexed
       This still longs for a thumbnail to be generated and stored
