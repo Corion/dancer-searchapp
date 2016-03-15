@@ -329,7 +329,9 @@ L<https://perlmonks.org/>.
 
 I've given a talk about this module at Perl conferences:
 
-L<German Perl Workshop 2016, German|http://corion.net/talks/dancer-searchapp/dancer-searchapp.html>
+L<German Perl Workshop 2016, German|http://corion.net/talks/dancer-searchapp/dancer-searchapp.de.html>
+
+L<German Perl Workshop 2016, English|http://corion.net/talks/dancer-searchapp/dancer-searchapp.en.html>
 
 =head1 BUG TRACKER
 
