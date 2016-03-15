@@ -22,6 +22,20 @@
 
 =head2 Pages
 
+=head3 Grid / Layout
+
+The pages should use L<Dancer::Layout::Bootstrap>, or at least
+an upgraded version of that.
+
+=head3 C<robots.txt>
+
+The app should prevent being spidered itself by always providing an
+automatic C<robots.txt> that allows only C</about> and maybe C</> without
+any parameters to be spidered.
+
+This is somewhat ironic as the scrapers currently don't respect any
+C<robots.txt> yet.
+
 =head3 Search page
 
 * Simple search
