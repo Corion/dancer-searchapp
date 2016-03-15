@@ -7,6 +7,7 @@ use Getopt::Long;
 
 GetOptions(
     'force|f' => \my $force_rebuild,
+    'config-file|c' => \my $config_file,
 );
 
 # Connect to localhost:9200:
