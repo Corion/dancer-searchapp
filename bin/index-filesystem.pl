@@ -218,6 +218,8 @@ sub get_file_info {
         
         $res{ mime_type } = $meta->{"Content-Type"};
         
+        # This should be general dispatching
+        # so the IMAP import can benefit from that
         if( $res{ mime_type } =~ m!^audio/mpeg$! ) {
             require MP3::Tag;
             my $mp3 = MP3::Tag->new($file);
@@ -228,7 +230,20 @@ sub get_file_info {
             $res{ content } = join "-", $artist, $album, $track, $comment, $genre, $file->basename, 'mp3';
             # We should also calculate the duration here, and some more information
             # to generate an "HTML" page for the file
+            # These special pages should be named "cards"
             
+        } elsif( $res{ mime_type } =~ m!^image/.*$! ) {
+            require Image::ExifTool;
+            my $info = Image::ExifTool->new;
+            $info->ExtractInfo("$file");
+            
+            $res{ title } = $info->GetValue( 'Title' ) || $file->basename;
+            $res{ author } = $info->GetValue( 'Author' );
+            $res{ language } = 'en'; # ...
+            $res{ content } = join "-", map { $_ => $info->GetValue($_) } $info->GetFoundTags('File'), $file->basename;
+            # We should also generate/store a (tiny) thumbnail here
+            # to generate an "HTML" page for the file
+
         } else {
             
             # Just use what Tika found

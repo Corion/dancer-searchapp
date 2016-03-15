@@ -49,11 +49,12 @@ WriteMakefile1(
         'Path::Class' => 0,
         'URI::file' => 0,
         'URI::Escape' => 0,
-
+        
         # CORION::Apache::Tika included until we spin it off
         
         # For media files
         'MP3::Tag' => 0,
+        'Image::ExifTool' => 0,
         },
     dist                => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
     clean               => { FILES => 'Dancer-SearchApp-*' },
