@@ -69,7 +69,13 @@ sub create_mapping {
             "title"      => multilang_text('title',$analyzer),
             "author"     => multilang_text('author', $analyzer),
             "content"    => multilang_text('content',$analyzer),
-            'folder'     => multilang_text('folder',$analyzer),
+            "folder"     => {
+                  "type" => "string",
+                  "analyzer" => $analyzer,
+                  # Some day I'll know how to have a separate tokenizer per-field
+                  # "tokenizer" => "path_hierarchy",
+            },
+            # This could also be considered a path_hierarchy
             'mime_type'  => { type => "string", index => 'not_analyzed' }, # text/html etc.
             "creation_date"    => {
               "type"  =>  "date",
