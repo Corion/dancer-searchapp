@@ -6,6 +6,8 @@ Dancer::SearchApp - A simple local search engine
 
 # QUICKSTART
 
+Also see [Dancer::SearchApp::Installation](https://metacpan.org/pod/Dancer::SearchApp::Installation).
+
     cpanm --look Dancer::SearchApp
     
     # Install prerequisites
@@ -41,6 +43,9 @@ Configuration happens through config.yml
     elastic_search:
       home: "./elasticsearch-2.1.1/"
       index: "dancer-searchapp"
+
+The Elasticsearch instance to used can also be passed in `%ENV`
+as `SEARCHAPP_ES_NODES`.
 
 # SECURITY CONSIDERATIONS
 

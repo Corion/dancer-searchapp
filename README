@@ -6,6 +6,8 @@ SYNOPSIS
 
 QUICKSTART
 
+    Also see Dancer::SearchApp::Installation.
+
       cpanm --look Dancer::SearchApp
       
       # Install prerequisites
@@ -41,6 +43,9 @@ CONFIGURATION
       elastic_search:
         home: "./elasticsearch-2.1.1/"
         index: "dancer-searchapp"
+
+    The Elasticsearch instance to used can also be passed in %ENV as
+    SEARCHAPP_ES_NODES.
 
 SECURITY CONSIDERATIONS
 
