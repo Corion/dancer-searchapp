@@ -83,7 +83,9 @@ The public support forum of this module is
 
 I've given a talk about this module at Perl conferences:
 
-[German Perl Workshop 2016, German](http://corion.net/talks/dancer-searchapp/dancer-searchapp.html)
+[German Perl Workshop 2016, German](http://corion.net/talks/dancer-searchapp/dancer-searchapp.de.html)
+
+[German Perl Workshop 2016, English](http://corion.net/talks/dancer-searchapp/dancer-searchapp.en.html)
 
 # BUG TRACKER
 

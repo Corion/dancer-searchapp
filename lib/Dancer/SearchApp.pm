@@ -12,7 +12,7 @@ use Dancer::SearchApp::Defaults 'default_index';
 use Dancer::SearchApp::Entry;
 
 use vars qw($VERSION $es %indices);
-$VERSION = '0.03';
+$VERSION = '0.04';
 
 =head1 NAME
 

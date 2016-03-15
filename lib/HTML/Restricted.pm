@@ -5,7 +5,7 @@ use Moo;
 use HTML::TreeBuilder 5 '-weak'; # we want weak references
 
 use vars '$VERSION';
-$VERSION = '0.03';
+$VERSION = '0.04';
 
 =head1 NAME
 

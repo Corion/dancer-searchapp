@@ -3,13 +3,16 @@ bin/app.pl
 bin/commandline.pl
 bin/index-filesystem.pl
 bin/index-imap.pl
+bin/index-url.pl
 Changes
 config-examples/fs-import.yml
 config-examples/imap-import.yml
 config.yml
+docker/Dockerfile
 environments/development.yml
 environments/production.yml
 es.cmd
+Features.pod
 fs-import.yml
 lib/CORION/Apache/Tika.pm
 lib/CORION/Apache/Tika/Connection.pm
@@ -18,6 +21,7 @@ lib/CORION/Apache/Tika/Connection/LWP.pm
 lib/CORION/Apache/Tika/DocInfo.pm
 lib/CORION/Apache/Tika/Server.pm
 lib/Dancer/SearchApp.pm
+lib/Dancer/SearchApp/Defaults.pm
 lib/Dancer/SearchApp/Entry.pm
 lib/Dancer/SearchApp/IndexSchema.pm
 lib/Dancer/SearchApp/Installation.pod
@@ -28,6 +32,8 @@ lib/Search/Elasticsearch/Plugin/Langdetect/API.pm
 Makefile.PL
 MANIFEST
 MANIFEST.SKIP
+META.json
+META.yml
 public/404.html
 public/500.html
 public/css/error.css
@@ -44,6 +50,8 @@ t/001_base.t
 t/002_index_route.t
 t/documents/2016-210_tor_cdtf.pdf
 t/documents/2016_budget.pdf
+t/documents/agricultural-trade-statistics_en.docx
+t/documents/CELEX_62016TN0047_DE_TXT.pdf
 t/documents/money_markets_statistical_reporting_faq.pdf
 thunderlink.reg
 todo.pod

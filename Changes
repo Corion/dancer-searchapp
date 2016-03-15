@@ -1,3 +1,9 @@
+0.04 2016015
+    . First stab at a rough (rough) HTTP URL importer
+    . Allow image metadata to be indexed
+      This still longs for a thumbnail to be generated and stored
+    . This is all still very experimental
+
 0.03 20160309
     . Fix leftover references to Apache::Tika -> CORION::Apache::Tika
 
