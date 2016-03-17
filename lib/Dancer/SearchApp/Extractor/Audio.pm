@@ -6,6 +6,7 @@ no warnings 'experimental';
 use feature 'signatures';
 use MP3::Tag;
 use POSIX 'strftime';
+use HTML::Entities;
 
 =head1 File types
 
@@ -49,7 +50,7 @@ sub examine( $class, %options ) {
             $res{ title } = $title || $file->basename;
             $res{ author } = $artist;
             $res{ language } = 'en'; # ...
-            $res{ content } = join "-", $artist, $album, $track, $comment, $genre, $file->basename, 'mp3';
+            $res{ content } = encode_entities( join "-", $artist, $album, $track, $comment, $genre, $file->basename, 'mp3' );
             $res{ mime_type } = $mime_type;
             # We should also calculate the duration here, and some more information
             

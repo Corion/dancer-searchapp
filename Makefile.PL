@@ -41,6 +41,7 @@ WriteMakefile1(
         'Test::More' => 0,
         'YAML'       => 0,
         'Dancer'     => 1.3132,
+        'HTML::Entities' => 0,
         'Template'   => 0,
         'Search::Elasticsearch' => 2,
         'Search::Elasticsearch::Async' => 2,

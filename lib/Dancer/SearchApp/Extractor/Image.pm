@@ -6,7 +6,7 @@ no warnings 'experimental';
 use feature 'signatures';
 use Image::ExifTool;
 use POSIX 'strftime';
-
+use HTML::Entities;
 
 sub examine( $class, %options ) {
     my $info = $options{info};
@@ -43,7 +43,7 @@ sub examine( $class, %options ) {
             $res{ title } = $info->GetValue( 'Title' ) || $file->basename;
             $res{ author } = $info->GetValue( 'Author' );
             $res{ language } = 'en'; # ...
-            $res{ content } = join "\n", map { $_ => $info->GetValue($_) } $info->GetFoundTags('File'), $file->basename;
+            $res{ content } = encode_entities( join "\n", map { $_ => $info->GetValue($_) } $info->GetFoundTags('File'), $file->basename );
             # We should also generate/store a (tiny) thumbnail here
             # to generate an "HTML" page for the file
 
