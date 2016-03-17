@@ -235,19 +235,6 @@ sub get_file_info {
             # These special pages should be named "cards"
             %res = %{$info[ 0 ]}; # just take the first item ...
             
-            
-        } elsif( $res{ mime_type } =~ m!^image/.*$! ) {
-            require Image::ExifTool;
-            my $info = Image::ExifTool->new;
-            $info->ExtractInfo("$file");
-            
-            $res{ title } = $info->GetValue( 'Title' ) || $file->basename;
-            $res{ author } = $info->GetValue( 'Author' );
-            $res{ language } = 'en'; # ...
-            $res{ content } = join "-", map { $_ => $info->GetValue($_) } $info->GetFoundTags('File'), $file->basename;
-            # We should also generate/store a (tiny) thumbnail here
-            # to generate an "HTML" page for the file
-
         } else {
             
             # Just use what Tika found

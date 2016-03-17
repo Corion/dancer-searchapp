@@ -7,6 +7,12 @@ use feature 'signatures';
 use MP3::Tag;
 use POSIX 'strftime';
 
+=head1 File types
+
+This uses L<MP3::Tag> and thus likely only handles mp3 files.
+
+=cut
+
 sub examine( $class, %options ) {
     my $info = $options{info};
     
