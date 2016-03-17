@@ -19,14 +19,15 @@ Dancer::SearchApp::Extractor - metadata extractors
 
   my $info = $tika->get_meta( $content );
   my $entry = $extractor->extract(
-      url => $url,
-      info => $info,
-      content => \$content, # if we have it
-      filename => $filename, # if we have it
+              url => $url,
+              info => $info,
+              #content => \$content, # if we have it
+              filename => $file, # if we have it
+              folder => $res{ folder }, # if we have it
   )->then(sub { ... });
   
-  # Do something with the Dancer::SearchApp::Entry,
-  # like insert it into Elasticsearch
+  # Do something with the hashrefs we get back,
+  # like insert the first one into Elasticsearch
 
 This method goes through all installed plugins and
 offers the file for inspection. The C<$info> parameter
