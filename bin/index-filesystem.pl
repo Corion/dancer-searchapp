@@ -196,10 +196,13 @@ sub get_entries_from_folder {
     return grep { !$_->is_dir } $folder->children();
 };
 
+use Dancer::SearchApp::Extractor;
+my $extractor = 'Dancer::SearchApp::Extractor'; #->new();
+
 sub get_file_info {
     my( $file ) = @_;
     my %res;
-    $res{ url } = URI::file->new( $file )->as_string;
+    my $url = URI::file->new( $file )->as_string;
     $res{ folder } = "" . $file->dir;
     $res{ folder } =~ s![\\/ ]! !g;
     
@@ -215,22 +218,23 @@ sub get_file_info {
     } else {
     
         my $meta = $info->meta;
-        
         $res{ mime_type } = $meta->{"Content-Type"};
+        
+        my @info = await $extractor->examine(
+              url => $url,
+              info => $info,
+              #content => \$content, # if we have it
+              filename => $file, # if we have it
+              folder => $res{ folder }, # if we have it
+        );
         
         # This should be general dispatching
         # so the IMAP import can benefit from that
-        if( $res{ mime_type } =~ m!^audio/mpeg$! ) {
-            require MP3::Tag;
-            my $mp3 = MP3::Tag->new($file);
-            my ($title, $track, $artist, $album, $comment, $year, $genre) = $mp3->autoinfo();
-            $res{ title } = $title || $file->basename;
-            $res{ author } = $artist;
-            $res{ language } = 'en'; # ...
-            $res{ content } = join "-", $artist, $album, $track, $comment, $genre, $file->basename, 'mp3';
-            # We should also calculate the duration here, and some more information
-            # to generate an "HTML" page for the file
+        if( @info ) {
+            # generate an "HTML" page for the file
             # These special pages should be named "cards"
+            %res = %{$info[ 0 ]}; # just take the first item ...
+            
             
         } elsif( $res{ mime_type } =~ m!^image/.*$! ) {
             require Image::ExifTool;
@@ -313,6 +317,13 @@ for my $folder (@folders) {
         map {
             my $msg = $_;
             my $body = $msg->{content};
+            
+            # Stringify some fields that are prone to be objects:
+            for(qw(file url)) {
+                if( $msg->{$_} ) {
+                    $msg->{ $_} = "$msg->{$_}";
+                };
+            };
             
             my $lang = detect_language($body, $msg);
             
