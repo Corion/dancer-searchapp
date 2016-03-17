@@ -8,6 +8,12 @@ use Image::ExifTool;
 use POSIX 'strftime';
 use HTML::Entities;
 
+=head1 File types
+
+This uses L<Image::ExifTool> and thus likely handles most image files.
+
+=cut
+
 sub examine( $class, %options ) {
     my $info = $options{info};
     
