@@ -2,7 +2,6 @@
 use strict;
 use AnyEvent;
 use Search::Elasticsearch::Async;
-use Dancer::SearchApp::Defaults 'default_index';
 use Promises qw[collect deferred];
 
 use Getopt::Long;
@@ -17,8 +16,10 @@ use Path::Class;
 use URI::file;
 use POSIX 'strftime';
 
+use Dancer::SearchApp::Defaults 'default_index';
 use Dancer::SearchApp::IndexSchema qw(create_mapping find_or_create_index %indices %analyzers );
 use Dancer::SearchApp::Utils qw(await);
+use Dancer::SearchApp::Extractor;
 
 #use lib 'C:/Users/Corion/Projekte/Apache-Tika/lib';
 use CORION::Apache::Tika::Server;
@@ -59,6 +60,8 @@ my $e = Search::Elasticsearch::Async->new(
     plugins => ['Langdetect'],
     #trace_to => 'Stderr',
 );
+
+my $extractor = 'Dancer::SearchApp::Extractor';
 
 my $tika_glob = 'C:/Users/Corion/Projekte/Apache-Tika/jar/tika-server-*.jar';
 my $tika_path = (sort { my $ad; $a =~ /server-1.(\d+)/ and $ad=$1;
@@ -196,8 +199,6 @@ sub get_entries_from_folder {
     return grep { !$_->is_dir } $folder->children();
 };
 
-use Dancer::SearchApp::Extractor;
-my $extractor = 'Dancer::SearchApp::Extractor'; #->new();
 
 sub get_file_info {
     my( $file ) = @_;
