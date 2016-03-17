@@ -8,6 +8,9 @@ use Dancer::SearchApp::Defaults 'default_index';
 use Getopt::Long;
 use Mail::IMAPClient;
 
+# Consider using Email::Folder::*
+# so that we can read things other than IMAP
+# Also move away from App::ImapBlog :-)
 use lib '../App-ImapBlog/lib';
 use App::ImapBlog::Entry;
 use MIME::Base64;
@@ -256,6 +259,7 @@ for my $folder (@folders) {
     my @messages;
     print "Reading $folder\n";
     push @messages, map {
+        # This doesn't handle attachments yet :-/
         App::ImapBlog::Entry->from_imap_client(imap(), $_,
             folder => $folder
         );
