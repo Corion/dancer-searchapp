@@ -8,6 +8,9 @@ use MP3::Tag;
 use POSIX 'strftime';
 use HTML::Entities;
 
+use vars qw($VERSION);
+$VERSION = '0.04';
+
 =head1 File types
 
 This uses L<MP3::Tag> and thus likely only handles mp3 files.

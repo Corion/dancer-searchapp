@@ -8,6 +8,9 @@ use Image::ExifTool;
 use POSIX 'strftime';
 use HTML::Entities;
 
+use vars qw($VERSION);
+$VERSION = '0.04';
+
 =head1 File types
 
 This uses L<Image::ExifTool> and thus likely handles most image files.

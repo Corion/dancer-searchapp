@@ -5,7 +5,9 @@ use feature 'signatures';
 use Module::Pluggable search_path => __PACKAGE__, require => 1;
 use Promises 'collect';
 use Carp 'croak';
-#use Moo;
+
+use vars qw($VERSION);
+$VERSION = '0.04';
 
 =head1 NAME
 
