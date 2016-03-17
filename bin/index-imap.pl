@@ -11,8 +11,6 @@ use Mail::IMAPClient;
 use lib '../App-ImapBlog/lib';
 use App::ImapBlog::Entry;
 use MIME::Base64;
-use Mail::Clean 'clean_subject';
-use Text::CleanFragment 'clean_fragment';
 
 use Data::Dumper;
 use YAML 'LoadFile';
