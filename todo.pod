@@ -53,6 +53,10 @@ Come up with a concept to render different mime types differently.
 Ideally, this would avoid the hardcoding we use for C<< audio/mpeg >>
 currently.
 
+This also entails information about things that are not files. Ideally,
+we can render information about a "person" using a different template
+as well, even though a "person" does not have a mime type associated with it.
+
 =head3 Customization
 
 * Auto-session
@@ -67,6 +71,8 @@ into arbitrary websites
 =head2 Dancer
 
 * ElasticSearch plugin / configuration through YAML
+
+* Upgrade to Dancer 2
 
 =head2 Mojolicious
 
@@ -147,10 +153,12 @@ German translation 'Geldmarktstatistik'.
 
 =head2 Crawlers
 
-* Create Dancer-crawler - skip the HTTP generation process
+=head3 Create Dancer-crawler
+
+Skip the HTTP generation process
 and reuse C<App::Wallflower> for crawling a Dancer website.
 
-* Create tree-structure-importer
+=head3 Create tree-structure-importer
 
 Both IMAP and file systems are basically directed graphs and far easier
 to crawl than the cyclic graphs of web pages. Abstract out the crawling
@@ -164,8 +172,94 @@ without an intermediate shell.
 
 * Add attachment import to the imap crawler
 
+=head3 Calendar crawler
+
+=head3 CardDAV crawler
+
+To pull in information about people you know
+
+=head3 Xing / LinkedIn / Facebook / Google+ crawler
+
+To pull in information about people you know
+
+=head3 LDAP crawler
+
+To pull in information about people you know
+
 =head2 Metasearch
 
 Implement metasearch across multiple ES instances
+
+=head1 Search index structure / data structures
+
+=head2 Elasticsearch index
+
+=head3 Last-verified field
+
+We want a field to store when we last visited an URL so we
+don't always reindex files with every run.
+
+=head2 Crawl queue(s)
+
+We want to have queues in which we store URLs to be crawled
+to allow for asynchronous submission of new items. This also
+allows us to be rate limited and restartable.
+
+This could be an SQLite database, or just a flat text
+file if we have a way to store the last position within that text
+file.
+
+=head2 SQL-index into filesystem
+
+Is there any use in reviving FFRIndex?
+
+=head1 System integration
+
+Automatically (re)scan resources by using a notification
+method like the following to be notified about new or changed
+resources.
+
+=head2 Resource modification
+
+=head3 Filesystem watchers
+
+=head3 RSS scanner
+
+=head3 Google Sitemap scanner
+
+
+=head2 Automatic search
+
+Automatic search should be triggered for incoming phone calls. This
+allows to automatically show relevant emails if the sender is calling
+and has their phone information in their email.
+
+=head1 Data portability
+
+Data portability is very important, not at least because of
+seamless index upgrades/rollbacks/backups.
+
+=head2 Export
+
+=head3 Export index to DBI
+
+=head3 Update indices from database
+
+=head2 Share indices
+
+Sharing indices would also be nice in the sense of websites or people
+offering datasets
+
+=head2 DBI connectivity
+
+How can we get L<DBI> and L<Promises> work nicely together?
+
+=head3 Schema migration/update via DBI
+
+=head3 DBI import queue
+
+New items to be imported into Elasticsearch could be stored/read from
+a DBI table. This would allow for a wider distributed set of crawlers
+feeding through DBI to Elasticsearch.
 
 =cut
