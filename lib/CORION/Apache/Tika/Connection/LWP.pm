@@ -16,14 +16,16 @@ has ua => (
 );
 
 sub request {
-    my( $self, $method, $url, $content ) = @_;
+    my( $self, $method, $url, $content, @headers ) = @_;
     # Should initialize
     
     my $content_size = length $content;
     
+    # 'text/plain' for the language
     my %headers= $content
                ? ('Content' => $content,
                   "Content-Length" => $content_size,
+                  @headers,
                   )
                : ();
     my $res = $self->ua->$method( $url, %headers);

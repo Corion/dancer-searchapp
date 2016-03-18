@@ -154,10 +154,11 @@ sub fetch {
         $method= 'put';
         ;
     };
-    # 'text/plain' for the language
+    
+    my $headers = $options{ headers } || {};
     
     my ($code,$res) = synchronous
-        $self->ua->request( $method, $url, $content );
+        $self->ua->request( $method, $url, $content, %$headers );
     my $info;
     if(    'all' eq $options{ type }
         or 'text' eq $options{ type }
@@ -188,7 +189,7 @@ sub fetch {
         
         if( ! defined $info->{meta}->{"meta:language"} ) {
             # Yay. Two requests.
-            my $lang_meta = $self->fetch(%options, type => 'language');
+            my $lang_meta = $self->fetch(%options, type => 'language', 'Content-Type' => $item->{'Content-Type'});
             $info->{meta}->{"meta:language"} = $lang_meta->meta->{"info"};
         };
         
