@@ -57,9 +57,13 @@ as well, even though a "person" does not have a mime type associated with it.
 
 =head3 Customization
 
-* Auto-session
+=head4 Auto-session
 
-* Refinement using the last search, if the last search was "recently"
+Refinement using the last search, if the last search was "recently"
+
+Basically, add the new term to the last terms instead of doing a new search
+based only on the new term. Usually, boost the new term, maybe by factor 2
+over the old terms. Provide a link to I<only> search for the new term instead.
 
 =head2 Plack
 
