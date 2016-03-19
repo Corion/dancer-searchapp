@@ -38,8 +38,6 @@ C<robots.txt> yet.
 
 =head3 Search page
 
-* Simple search
-
 * Autocomplete/recommend
 
 =head3 Simple (HTML) Results page
@@ -153,15 +151,10 @@ Create screencasts using L<http://www.openshot.org/videos/>
 
 The first start should be as configuration-free as possible.
 
-=head3 File system crawler
+=head2 Site walk through
 
-=head4 Windows
-
-Use C<$ENV{USERPROFILE}>
-
-=head4 Unixish
-
-Use C<$ENV{HOME}>
+Use one of the fancy Javascript walk-through implementation to offer
+an optional walk-through through the search page and results page.
 
 =head1 Code structure
 
