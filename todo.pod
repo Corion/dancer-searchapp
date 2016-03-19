@@ -153,6 +153,20 @@ German translation 'Geldmarktstatistik'.
 
 =head2 Crawlers
 
+=head3 File system crawler
+
+Don't import hidden files by default
+
+=head3 DBI crawler
+
+Show example C<SELECT> statement
+
+  SELECT
+      product_name as title
+    , 'http://productserver.internal/product/' || convert(varchar,product.id) as url
+    , product_description as content
+  FROM products
+
 =head3 Create Dancer-crawler
 
 Skip the HTTP generation process
@@ -234,6 +248,10 @@ Automatic search should be triggered for incoming phone calls. This
 allows to automatically show relevant emails if the sender is calling
 and has their phone information in their email.
 
+Also, the automatic search should be easily triggered by a command
+line program. This likely needs something like L<HTTP::ServerEvent>
+to keep a channel open so the server can push new information.
+
 =head1 Data portability
 
 Data portability is very important, not at least because of
@@ -261,5 +279,17 @@ How can we get L<DBI> and L<Promises> work nicely together?
 New items to be imported into Elasticsearch could be stored/read from
 a DBI table. This would allow for a wider distributed set of crawlers
 feeding through DBI to Elasticsearch.
+
+=head1 First Start Experience
+
+=head2 File system crawler
+
+=head3 Windows
+
+Use C<$ENV{USERPROFILE}>
+
+=head3 Unixish
+
+Use C<$ENV{HOME}>
 
 =cut
