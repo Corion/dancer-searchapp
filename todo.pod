@@ -147,7 +147,21 @@ German translation 'Geldmarktstatistik'.
 
 =head2 Videos
 
-* Create screencasts using L<http://www.openshot.org/videos/> or
+Create screencasts using L<http://www.openshot.org/videos/>
+
+=head2 First Start Experience
+
+The first start should be as configuration-free as possible.
+
+=head3 File system crawler
+
+=head4 Windows
+
+Use C<$ENV{USERPROFILE}>
+
+=head4 Unixish
+
+Use C<$ENV{HOME}>
 
 =head1 Code structure
 
@@ -279,17 +293,5 @@ How can we get L<DBI> and L<Promises> work nicely together?
 New items to be imported into Elasticsearch could be stored/read from
 a DBI table. This would allow for a wider distributed set of crawlers
 feeding through DBI to Elasticsearch.
-
-=head1 First Start Experience
-
-=head2 File system crawler
-
-=head3 Windows
-
-Use C<$ENV{USERPROFILE}>
-
-=head3 Unixish
-
-Use C<$ENV{HOME}>
 
 =cut

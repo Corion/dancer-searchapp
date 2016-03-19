@@ -26,3 +26,27 @@ Search mp3 files
 
 Docker container
 
+=head1 User Introduction
+
+=head2 First Start Experience
+
+The first start is as configuration-free as possible. This means
+choosing some defaults that might turn out to be too lenient in retrospect,
+but ...
+
+=head3 File system crawler
+
+The file system crawler crawls the complete user profile by default.
+This means that the search for the user might show results in folders
+that the user might not want to show in public. An interactive introduction
+might highlight this situation.
+
+=head4 Windows default folder
+
+Use C<$ENV{USERPROFILE}>
+
+=head4 Unixish default folder
+
+Use C<$ENV{HOME}>
+
+=cut
