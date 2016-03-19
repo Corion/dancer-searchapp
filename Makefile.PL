@@ -50,6 +50,9 @@ WriteMakefile1(
         'Path::Class' => 0,
         'URI::file' => 0,
         'URI::Escape' => 0,
+
+        # For rendering our development Pod
+        'Pod::POM' => 0,
         
         # CORION::Apache::Tika included until we spin it off
         
