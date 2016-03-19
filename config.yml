@@ -27,6 +27,14 @@ engines:
      end_tag:   '%>'
      debug: 1
 
+plack_middlewares:
+    -
+        - Pod
+        - path
+        - "^/pod/"
+        - root
+        - "./"
+
 # For session support enable the following line and see Dancer::Session
 # session: "YAML"
 
