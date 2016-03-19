@@ -286,6 +286,13 @@ sub url_stored {
 if( @ARGV) {
     $config->{directories} = [@ARGV];
 };
+
+if( ! @ARGV ) {
+    # If we don't know better, scan the (complete) profile
+    my $userhome = $ENV{USERPROFILE} || $ENV{HOME};
+    $config->{directories} = [$userhome];
+}
+
 my @folders = fs_recurse(undef, $config);
 for my $folder (@folders) {
     my @entries;
