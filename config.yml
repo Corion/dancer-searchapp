@@ -33,7 +33,7 @@ plack_middlewares:
         - path
         - "^/pod/"
         - root
-        - "./"
+        - "./pod/"
 
 # For session support enable the following line and see Dancer::Session
 # session: "YAML"
