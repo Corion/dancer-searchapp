@@ -190,6 +190,8 @@ sub get_document_info {
     # I left FTR at home, so I'll redo a low-spec version here
     my $title = get_selector($parsed,'title');
     
+    # If the content type is not text/html use Tika to
+    # extract the Real Content.
     #eval {
     #    $info = $tika->get_all( $html );
     #};
