@@ -1,10 +1,5 @@
 =head1 TO DO
 
-=head1 Split this up
-
-This should be split up into several files with this file only holding
-the index
-
 =head2 Name
 
 * Come up with a good name
@@ -12,18 +7,6 @@ the index
 * YODA (from the image in the talk)?
 
 * "Answers you seek?"
-
-=head2 Distribution
-
-=head3 Docker
-
-* ulimit for crawling processes
-
-=head3 Windows distribution
-
-* C<.msi> package including Perl, Apache Tika and Elasticsearch
-
-* Debian package
 
 =head2 Pages
 
@@ -44,6 +27,8 @@ C<robots.txt> yet.
 =head3 Search page
 
 * Autocomplete/recommend
+
+L<http://twitter.github.io/typeahead.js/>
 
 =head3 Simple (HTML) Results page
 
@@ -119,6 +104,8 @@ Currently better written in Perl
 =head3 Video data
 
 Which module provides interesting video metadata?
+
+Use L<Video::Subtitle::SRT> for reading subtitle files
 
 How can we find where / on what line search results were found? If we include
 a magic marker (HTML comment?) at the end/start of a line, we could hide it when
