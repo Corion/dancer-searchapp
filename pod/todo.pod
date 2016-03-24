@@ -1,5 +1,10 @@
 =head1 TO DO
 
+=head1 Split this up
+
+This should be split up into several files with this file only holding
+the index
+
 =head2 Name
 
 * Come up with a good name
@@ -43,6 +48,8 @@ C<robots.txt> yet.
 =head3 Simple (HTML) Results page
 
 * Search images
+
+* Strip out or silence even more HTML tags (H1 etc.)
 
 =head3 Result fragment / document rendering
 
@@ -112,6 +119,11 @@ Currently better written in Perl
 =head3 Video data
 
 Which module provides interesting video metadata?
+
+How can we find where / on what line search results were found? If we include
+a magic marker (HTML comment?) at the end/start of a line, we could hide it when
+displaying the results to the user while still using it to orient ourselves
+in the document.
 
 =head3 Audio data
 
@@ -290,5 +302,25 @@ How can we get L<DBI> and L<Promises> work nicely together?
 New items to be imported into Elasticsearch could be stored/read from
 a DBI table. This would allow for a wider distributed set of crawlers
 feeding through DBI to Elasticsearch.
+
+=head1 Index/query quality maintenance
+
+To improve search results, a log of "failed" queries
+should be kept and the user should be offered manual correction
+of the failed queries.
+
+=head2 top 10 failed queries
+
+If a query had no results at all, the user should/could suggest
+some synonyms or even documents to use instead
+
+=head2 top 10 low-score queries
+
+If a query had only low-score results/documents, the results are also
+a candidate for manual improvement. How can we determine a low score?
+
+=head2 top 10 abandoned queries
+
+How will we determine if a query/word was abandoned?
 
 =cut
