@@ -167,7 +167,12 @@ sub get_entries_from_folder {
     my( $folder, @message_uids )= @_;
     # Add rate-limiting counter here, so we don't flood
     
-    return grep { !$_->is_dir } $folder->children();
+    my @directories = eval { $folder->children() };
+    if( $@ ) {
+        warn "Skipped $folder, no permissions\n";
+    };
+    
+    return grep { !$_->is_dir } @directories;
 };
 
 
