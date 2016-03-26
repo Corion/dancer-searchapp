@@ -12,7 +12,6 @@ docker/Dockerfile
 environments/development.yml
 environments/production.yml
 es.cmd
-Features.pod
 fs-import.yml
 lib/CORION/Apache/Tika.pm
 lib/CORION/Apache/Tika/Connection.pm
@@ -59,7 +58,6 @@ public/images/perldancer-bg.jpg
 public/images/perldancer.jpg
 public/javascripts/bootstrap-3/bootstrap.js
 public/javascripts/bootstrap-3/bootstrap.min.js
-public/javascripts/jquery.min.js
 public/javascripts/jQuery/jquery-1.11.3.min.js
 public/javascripts/jQuery/jquery.ui.widget.js
 README
@@ -72,7 +70,6 @@ t/documents/agricultural-trade-statistics_en.docx
 t/documents/CELEX_62016TN0047_DE_TXT.pdf
 t/documents/money_markets_statistical_reporting_faq.pdf
 thunderlink.reg
-todo.pod
 views/index.tt
 views/layouts/bootstrap3.tt
 views/layouts/main.tt
