@@ -52,7 +52,10 @@ has url => (
     #isa => 'Str',
 );
 
+{
+no warnings 'once';
 *id = \*url;
+}
 
 has mime_type => (
     is => 'ro',

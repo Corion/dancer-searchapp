@@ -2,8 +2,8 @@
 use strict;
 use AnyEvent;
 use Search::Elasticsearch::Async;
-use Promises ['AE'], qw[collect deferred];
-use Promises::RateLimiter;
+use Promises backend => ['AE'], qw[collect deferred];
+#use Promises::RateLimiter;
 
 use Getopt::Long;
 

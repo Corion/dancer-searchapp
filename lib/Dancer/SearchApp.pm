@@ -84,7 +84,7 @@ sub search {
     $es
 };
 
-$Template::Stash::PRIVATE = 1;
+$Template::Stash::PRIVATE = $Template::Stash::PRIVATE = 1;
 
 get '/' => sub {
     # Later, separate out the code paths between
