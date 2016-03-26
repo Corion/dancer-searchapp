@@ -17,14 +17,12 @@ sub request {
     my $content_size = length $content;
     
     # 'text/plain' for the language
-    my %headers= $content
-               ? (
+    my %headers= (
                   "Content-Length" => $content_size,
                   "Accept" => 'application/json,text/plain',
                   @headers
-                 )
-               : ();
-    
+                 );
+
     my $p = deferred;
     http_request(
         $method => $url,

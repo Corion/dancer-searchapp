@@ -22,12 +22,10 @@ sub request {
     my $content_size = length $content;
     
     # 'text/plain' for the language
-    my %headers= $content
-               ? ('Content' => $content,
-                  "Content-Length" => $content_size,
-                  @headers,
-                  )
-               : ();
+    unshift @headers, "Content-Length" => $content_size;
+    my %headers= )$content
+               ? ('Content' => $content)
+               : ()), @headers;
     my $res = $self->ua->$method( $url, %headers);
     
     my $p = deferred;
