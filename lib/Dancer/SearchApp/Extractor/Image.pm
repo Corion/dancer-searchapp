@@ -17,7 +17,7 @@ This uses L<Image::ExifTool> and thus likely handles most image files.
 
 =cut
 
-sub examine( $class, %options ) {
+sub examine {
     my ( $class, %options ) = @_;
     my $info = $options{info};
     
