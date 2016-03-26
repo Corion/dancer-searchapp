@@ -138,6 +138,10 @@ sub fs_recurse {
     my @folders;
 
     for my $folderspec (@{$config->{directories}}) {
+        if( ! exists $folderspec->{exclude} ) {
+            # By default, exclude hidden files
+            $folderspec->{exclude} = [qr/^\./];
+        };
         if( ! ref $folderspec ) {
             # plain name, use this folder
             push @folders, dir($folderspec)
@@ -172,7 +176,7 @@ sub get_entries_from_folder {
         warn "Skipped $folder, no permissions\n";
     };
     
-    return grep { !$_->is_dir } @directories;
+    return grep { !$_->is_dir and ! /^\./ } @directories;
 };
 
 
@@ -283,7 +287,7 @@ for my $folder (@folders) {
     my $done = AnyEvent->condvar;
 
     # Importieren
-    print sprintf "Importing %d messages\n", 0+@entries;
+    print sprintf "Importing %d files\n", 0+@entries;
     collect(
         map {
             my $msg = $_;
