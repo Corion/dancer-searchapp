@@ -2,6 +2,8 @@ package Plack::Middleware::Pod;
 use strict;
 use Pod::POM;
 use parent qw( Plack::Middleware );
+use vars qw($VERSION);
+$VERSION = '0.04';
 
 use Plack::Util::Accessor qw(
     path
