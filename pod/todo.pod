@@ -172,6 +172,10 @@ an optional walk-through through the search page and results page.
 
 Don't import hidden files by default
 
+Have a file C<.search> or C<.index> which contains
+options, like C<no-index> or C<ignore> for this folder and its
+subfolders.
+
 =head3 DBI crawler
 
 Show example C<SELECT> statement
