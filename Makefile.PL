@@ -58,7 +58,7 @@ WriteMakefile1(
         'Pod::POM' => 0,
 
         # For the IMAP/mail support, until we spin that off
-        'Mail::ImapClient' => 0,
+        'Mail::IMAPClient' => 0,
         'MIME::WordDecoder' => 0,
         'MIME::Base64' => 0,
         'MIME::QuotedPrint' => 0,
