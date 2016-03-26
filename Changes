@@ -1,3 +1,7 @@
+0.05 20160326
+    . File system scanner now recursively imports $HOME by default
+    . Use Boostrap v3 for the web UI
+
 0.04 20160315
     . First stab at a rough (rough) HTTP URL importer
     . Allow image metadata to be indexed
