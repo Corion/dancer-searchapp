@@ -12,8 +12,7 @@ use Mail::IMAPClient;
 # Consider using Email::Folder::*
 # so that we can read things other than IMAP
 # Also move away from App::ImapBlog :-)
-use lib '../App-ImapBlog/lib';
-use App::ImapBlog::Entry;
+use Mail::Email::IMAP;
 use MIME::Base64;
 
 use Data::Dumper;
@@ -221,7 +220,6 @@ sub get_messages_from_folder {
 #use Search::Elasticsearch::Plugin::Langdetect;
 #my $ld = Search::Elasticsearch::Plugin::Langdetect->new( elasticsearch => $e );
 
-use App::ImapBlog::Entry;
 my @folders = imap_recurse(imap, $config->{imap});
 #my $importer = $e->bulk_helper();
 for my $folder (@folders) {
@@ -229,7 +227,7 @@ for my $folder (@folders) {
     print "Reading $folder\n";
     push @messages, map {
         # This doesn't handle attachments yet :-/
-        App::ImapBlog::Entry->from_imap_client(imap(), $_,
+        Mail::Email::IMAP->from_imap_client(imap(), $_,
             folder => $folder
         );
     } get_messages_from_folder( $folder );

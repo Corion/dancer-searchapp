@@ -29,6 +29,8 @@ lib/Dancer/SearchApp/IndexSchema.pm
 lib/Dancer/SearchApp/Installation.pod
 lib/Dancer/SearchApp/Utils.pm
 lib/HTML/Restricted.pm
+lib/Mail/Clean.pm
+lib/Mail/Email/IMAP.pm
 lib/Plack/Middleware/Pod.pm
 lib/Search/Elasticsearch/Plugin/Langdetect.pm
 lib/Search/Elasticsearch/Plugin/Langdetect/API.pm
