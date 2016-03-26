@@ -3,6 +3,7 @@ use strict;
 use AnyEvent;
 use Search::Elasticsearch::Async;
 use Promises qw[collect deferred];
+#use Promises::RateLimiter;
 
 use Dancer::SearchApp::Defaults 'default_index';
 use Getopt::Long;
