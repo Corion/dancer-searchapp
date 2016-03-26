@@ -179,7 +179,7 @@ sub fetch {
                 $c =~ s!\A\s*<p>(.*)\s*</p>\s*\z!$1!s;
             };
         } else {
-            warn "Couldn't find body in response";
+            warn "Couldn't find HTML body in response";
         };
         
         $info= CORION::Apache::Tika::DocInfo->new({
