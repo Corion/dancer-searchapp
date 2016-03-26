@@ -24,15 +24,15 @@
         </button>
         <a class="navbar-brand"><% settings.appname %></a>
       </div>
-<!--
       <div class="collapse navbar-collapse" id="bs-navbar-collapse-1">
         <ul class="nav navbar-nav">
             <li><a href="<% request.uri_base %>">Home</a></li>
+            <li><a href="/pod/Todo.pod">To-do list</a></li>
+            <!--
             <% IF session.user %>
             <li><a class="active navbar-link" href="#">Action1</a></li>
             <li><a class="navbar-link" href="#">Action2</a></li>
             <% END %>
-            <li><a href="#about">About</a></li>
             <li><a href="#contact">Contact</a></li>
             <li>
               <form class="form-search navbar-form navbar-left" role="search">
@@ -44,8 +44,8 @@
                   </div>
               </form>
             </li>
+            -->
         </ul>
--->
 <ul class="nav navbar-nav navbar-right">
 <% IF session.user %>
     <li><a href="#">New Messages <span class="badge">3</span></a></li>
