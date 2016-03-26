@@ -3,7 +3,7 @@ use strict;
 use Exporter 'import';
 use Data::Diver qw<DiveRef Dive >;
 use vars qw($VERSION @EXPORT_OK %defaults);
-$VERSION = '0.04';
+$VERSION = '0.05';
 
 # This should move to Config::Spec::FromPod
 # and maybe even Config::Collect

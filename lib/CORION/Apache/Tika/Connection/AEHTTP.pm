@@ -6,7 +6,7 @@ use Moo;
 with 'CORION::Apache::Tika::Connection';
 
 use vars '$VERSION';
-$VERSION = '0.04';
+$VERSION = '0.05';
 
 sub request {
     my( $self, $method, $url, $content, @headers ) = @_;

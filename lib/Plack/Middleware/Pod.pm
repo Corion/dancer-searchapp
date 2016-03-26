@@ -3,7 +3,7 @@ use strict;
 use Pod::POM;
 use parent qw( Plack::Middleware );
 use vars qw($VERSION);
-$VERSION = '0.04';
+$VERSION = '0.05';
 
 use Plack::Util::Accessor qw(
     path

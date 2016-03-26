@@ -7,7 +7,7 @@ use Promises 'collect';
 use Carp 'croak';
 
 use vars qw($VERSION);
-$VERSION = '0.04';
+$VERSION = '0.05';
 
 =head1 NAME
 
