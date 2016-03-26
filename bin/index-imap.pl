@@ -5,7 +5,7 @@ use Search::Elasticsearch::Async;
 use Promises qw[collect deferred];
 #use Promises::RateLimiter;
 
-use Dancer::SearchApp::Defaults 'default_index';
+use Dancer::SearchApp::Defaults 'get_defaults';
 use Getopt::Long;
 use Mail::IMAPClient;
 
@@ -28,25 +28,30 @@ my $false = JSON->false;
 
 GetOptions(
     'force|f' => \my $force_rebuild,
-    'config|c' => \my $config_file,
+    'config|c:s' => \my $config_file,
 );
 $config_file ||= 'imap-import.yml';
 
-# Connect to localhost:9200:
-
-#my $e = Search::Elasticsearch::Async->new();
-
-# Round-robin between two nodes:
-
-my $config = LoadFile($config_file);
-my $index_name = $config->{index} || default_index;
-$config = $config->{imap};
-
+my $config = get_defaults(
+    env      => \%ENV,
+    config   => LoadFile($config_file),
+    names => [
+        ['elastic_search/index' => 'elastic_search/index' => 'SEARCHAPP_ES_INDEX', 'dancer-searchapp'],
+        ['elastic_search/nodes' => 'elastic_search/nodes' => 'SEARCHAPP_ES_NODES', 'localhost:9200'],
+        ['imap/server'          => 'imap/server'          => IMAP_SERVER => 'localhost' ],
+        ['imap/port'            => 'imap/port'            => IMAP_PORT => '993' ],
+        ['imap/username'        => 'imap/username'        => IMAP_USER  => ],
+        ['imap/password'        => 'imap/password'        => IMAP_PASSWORD => ],
+        ['imap/debug'           => 'imap/debug'           => IMAP_DEBUG => ],
+        ['imap/folders'         => 'imap/folders'         => undef => []],
+    ],
+);
+my $index_name = $config->{elastic_search}->{index};
+my $node = $config->{elastic_search}->{nodes};
 
 my $e = Search::Elasticsearch::Async->new(
     nodes => [
-        'localhost:9200',
-        #'search2:9200'
+        $node
     ],
     #plugins => ['Langdetect'],
 );
@@ -99,54 +104,17 @@ warn "Index: $_\n" for keys %indices;
 
 # Connect to cluster at search1:9200, sniff all nodes and round-robin between them:
 
-# Lame-ass config cascade
-# Read from %ENV, $config, hard defaults, with different names,
-# write to yet more different names
-# Should merge with other config cascade
-sub get_defaults {
-    my( %options ) = @_;
-    $options{ defaults } ||= {}; # premade defaults
-    
-    my @names = @{ $options{ names } };
-    if( ! exists $options{ env }) {
-        $options{ env } = \%ENV;
-    };
-    my $env = $options{ env };
-    my $config = $options{ config };
-    
-    for my $entry (@{ $options{ names }}) {
-        my ($result_name, $config_name, $env_name, $hard_default) = @$entry;
-        if( defined $env_name and exists $env->{ $env_name } ) {
-            #print "Using $env_name from environment\n";
-            $options{ defaults }->{ $result_name } //= $env->{ $env_name };
-        };
-        if( defined $config_name and exists $config->{ $config_name } ) {
-            #print "Using $config_name from config\n";
-            $options{ defaults }->{ $result_name } //= $config->{ $config_name };
-        };
-        if( ! exists $options{ defaults }->{$result_name} ) {
-            print "No $config_name from config, using hardcoded default\n";
-            print "Using $env_name from hard defaults ($hard_default)\n";
-            $options{ defaults }->{ $result_name } = $hard_default;
-        };
-    };
-    $options{ defaults };
-};
-
-use vars qw($imap $config);
+use vars qw($imap);
 sub imap() {
     return $imap if $imap and $imap->IsConnected;
     
-    my %imap_config = %{ get_defaults(
-        config => $config,
-        names => [
-            [ Server   => 'server'   => IMAP_SERVER => 'localhost' ],
-            [ Port     => 'port'     => IMAP_PORT => '993' ],
-            [ User     => 'username' => IMAP_USER  => ],
-            [ Password => 'password' => IMAP_PASSWORD => ],
-            [ Debug    => 'debug'    => IMAP_DEBUG => ],
-        ],
-    ) };
+    my %imap_config = (
+        Server => $config->{imap}->{server},
+        Port => $config->{imap}->{port},
+        User => $config->{imap}->{username},
+        Password => $config->{imap}->{password},
+        Debug => $config->{imap}->{debug},
+    );
     
     use IO::Socket::SSL;
     #$IO::Socket::SSL::DEBUG = 3; # all
@@ -189,7 +157,7 @@ sub in_exclude_list {
 # This should go into crawler::imap
 sub imap_recurse {
     my( $imap, $config ) = @_;
-
+    
     my @folders;
     for my $folderspec (@{$config->{folders}}) {
         if( ! ref $folderspec ) {
@@ -254,7 +222,7 @@ sub get_messages_from_folder {
 #my $ld = Search::Elasticsearch::Plugin::Langdetect->new( elasticsearch => $e );
 
 use App::ImapBlog::Entry;
-my @folders = imap_recurse(imap, $config);
+my @folders = imap_recurse(imap, $config->{imap});
 #my $importer = $e->bulk_helper();
 for my $folder (@folders) {
     my @messages;

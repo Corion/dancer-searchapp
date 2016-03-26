@@ -7,7 +7,6 @@ use Promises qw[collect deferred];
 use Getopt::Long;
 
 use MIME::Base64;
-use Text::CleanFragment 'clean_fragment';
 
 use Data::Dumper;
 use YAML 'LoadFile';
@@ -16,7 +15,7 @@ use Path::Class;
 use URI::file;
 use POSIX 'strftime';
 
-use Dancer::SearchApp::Defaults 'default_index';
+use Dancer::SearchApp::Defaults 'get_defaults';
 use Dancer::SearchApp::IndexSchema qw(create_mapping find_or_create_index %indices %analyzers );
 use Dancer::SearchApp::Utils qw(await);
 use Dancer::SearchApp::Extractor;
@@ -44,21 +43,29 @@ my $false = JSON->false;
 GetOptions(
     'force|f' => \my $force_rebuild,
     'config|c' => \my $config_file,
+    # How can we easily pass the options for below as command line parameters?!
 );
 $config_file ||= 'fs-import.yml';
 
-my $config = LoadFile($config_file);
+my $file_config = LoadFile($config_file);
 
-my $index_name = $config->{index} || default_index;
-$config = $config->{fs};
+my $config = get_defaults(
+    env      => \%ENV,
+    config   => $file_config,
+    #defaults => \%
+    names => [
+        ['elastic_search/index' => 'elastic_search/index' => 'SEARCHAPP_ES_INDEX', 'dancer-searchapp'],
+        ['elastic_search/nodes' => 'elastic_search/nodes' => 'SEARCHAPP_ES_NODES', 'localhost:9200'],
+    ],
+);
+
+my $index_name = $config->{elastic_search}->{index};
 
 my $e = Search::Elasticsearch::Async->new(
     nodes => [
-        'localhost:9200',
-        #'search2:9200'
+        $config->{elastic_search}->{nodes},
     ],
     plugins => ['Langdetect'],
-    #trace_to => 'Stderr',
 );
 
 my $extractor = 'Dancer::SearchApp::Extractor';
@@ -117,42 +124,6 @@ await $e->indices->get({index => ['*']})->then(sub{
 });
 
 warn "Index: $_\n" for grep { /^\Q$index_name/ } keys %indices;
-
-# Connect to cluster at search1:9200, sniff all nodes and round-robin between them:
-
-# Lame-ass config cascade
-# Read from %ENV, $config, hard defaults, with different names,
-# write to yet more different names
-# Should merge with other config cascade
-sub get_defaults {
-    my( %options ) = @_;
-    $options{ defaults } ||= {}; # premade defaults
-    
-    my @names = @{ $options{ names } };
-    if( ! exists $options{ env }) {
-        $options{ env } = \%ENV;
-    };
-    my $env = $options{ env };
-    my $config = $options{ config };
-    
-    for my $entry (@{ $options{ names }}) {
-        my ($result_name, $config_name, $env_name, $hard_default) = @$entry;
-        if( defined $env_name and exists $env->{ $env_name } ) {
-            #print "Using $env_name from environment\n";
-            $options{ defaults }->{ $result_name } //= $env->{ $env_name };
-        };
-        if( defined $config_name and exists $config->{ $config_name } ) {
-            #print "Using $config_name from config\n";
-            $options{ defaults }->{ $result_name } //= $config->{ $config_name };
-        };
-        if( ! exists $options{ defaults }->{$result_name} ) {
-            print "No $config_name from config, using hardcoded default\n";
-            print "Using $env_name from hard defaults ($hard_default)\n";
-            $options{ defaults }->{ $result_name } = $hard_default;
-        };
-    };
-    $options{ defaults };
-};
 
 sub in_exclude_list {
     my( $item, $list ) = @_;
@@ -284,16 +255,16 @@ sub url_stored {
 }
 
 if( @ARGV) {
-    $config->{directories} = [@ARGV];
+    $config->{fs}->{directories} = [@ARGV];
 };
 
 if( ! @ARGV ) {
     # If we don't know better, scan the (complete) profile
     my $userhome = $ENV{USERPROFILE} || $ENV{HOME};
-    $config->{directories} = [$userhome];
+    $config->{fs}->{directories} = [{ folder => $userhome, recurse => 1 }];
 }
 
-my @folders = fs_recurse(undef, $config);
+my @folders = fs_recurse(undef, $config->{fs});
 for my $folder (@folders) {
     my @entries;
     print "Reading $folder\n";

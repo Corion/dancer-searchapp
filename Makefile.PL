@@ -51,6 +51,9 @@ WriteMakefile1(
         'URI::file' => 0,
         'URI::Escape' => 0,
 
+        # For configuration management
+        'Data::Diver' => 0,
+
         # For rendering our development Pod
         'Pod::POM' => 0,
         

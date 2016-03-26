@@ -1,4 +1,5 @@
-index: dancer-searchapp
+elastic_search:
+    index: dancer-searchapp
 fs:
     directories:
         - folder: "C:\\Users\\Corion\\Projekte\\App-StarTraders"

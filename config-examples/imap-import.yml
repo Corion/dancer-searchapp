@@ -1,5 +1,6 @@
 # Our search data providers:
-index: dancer-searchapp
+elastic_search:
+    index: dancer-searchapp
 imap:
     username: corion
     password: "Horse Staple Battery"

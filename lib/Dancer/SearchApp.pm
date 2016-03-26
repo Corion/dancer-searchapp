@@ -7,7 +7,7 @@ use URI::Escape 'uri_unescape';
 use URI::file;
 #use Search::Elasticsearch::TestServer;
 
-use Dancer::SearchApp::Defaults 'default_index';
+use Dancer::SearchApp::Defaults 'get_defaults';
 
 use Dancer::SearchApp::Entry;
 
@@ -68,14 +68,19 @@ as C<SEARCHAPP_ES_NODES>.
 use Data::Dumper;
 $Data::Dumper::Sortkeys = 1;
 
+my $config = get_defaults(
+    env      => \%ENV,
+    config   => config(),
+    #defaults => \%
+    names => [
+        ['elastic_search/index' => 'elastic_search/index' => 'SEARCHAPP_ES_INDEX', 'searchapp'],
+        ['elastic_search/nodes' => 'elastic_search/nodes' => 'SEARCHAPP_ES_NODES', 'localhost:9200'],
+    ],
+);
+
 sub search {
     if( ! $es ) {
-        my $nodes;
-        if( $nodes = $ENV{SEARCHAPP_ES_NODES} ) {
-            $nodes = [ split /;/, $nodes ];
-        } else {
-            $nodes = config->{nodes} || [];
-        };
+        my $nodes = config->{elastic_search}->{nodes};
         $es = Search::Elasticsearch->new(
             nodes => $nodes,
         );
@@ -114,7 +119,7 @@ get '/' => sub {
         };
         
         # Move this to an async query, later
-        my $index = config->{elastic_search}->{index} || default_index;
+        my $index = config->{elastic_search}->{index};
         $results = search->search(
             # Wir suchen in allen Sprachindices
             index => [ grep { /^\Q$index\E/ } sort keys %indices ],
