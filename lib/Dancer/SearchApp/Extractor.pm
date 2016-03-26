@@ -1,7 +1,7 @@
 package Dancer::SearchApp::Extractor;
 use strict;
-no warnings 'experimental';
-use feature 'signatures';
+#no warnings 'experimental';
+#use feature 'signatures';
 use Module::Pluggable search_path => __PACKAGE__, require => 1;
 use Promises 'collect';
 use Carp 'croak';
@@ -43,7 +43,8 @@ applicable.
 
 =cut
 
-sub examine( $self, %options ) {
+sub examine {
+    my( $self, %options ) = @_;
     $options{ url }
         or croak "Need URL option";
     $options{ info }

@@ -2,8 +2,8 @@ package Dancer::SearchApp::Extractor::Audio;
 use strict;
 use Carp 'croak';
 use Promises 'deferred';
-no warnings 'experimental';
-use feature 'signatures';
+#no warnings 'experimental';
+#use feature 'signatures';
 use MP3::Tag;
 use POSIX 'strftime';
 use HTML::Entities;
@@ -17,7 +17,8 @@ This uses L<MP3::Tag> and thus likely only handles mp3 files.
 
 =cut
 
-sub examine( $class, %options ) {
+sub examine {
+    my( $class, %options ) = @_;
     my $info = $options{info};
     
     my $result = deferred;

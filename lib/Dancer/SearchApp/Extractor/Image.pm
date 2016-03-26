@@ -2,8 +2,8 @@ package Dancer::SearchApp::Extractor::Image;
 use strict;
 use Carp 'croak';
 use Promises 'deferred';
-no warnings 'experimental';
-use feature 'signatures';
+#no warnings 'experimental';
+#use feature 'signatures';
 use Image::ExifTool;
 use POSIX 'strftime';
 use HTML::Entities;
@@ -18,6 +18,7 @@ This uses L<Image::ExifTool> and thus likely handles most image files.
 =cut
 
 sub examine( $class, %options ) {
+    my ( $class, %options ) = @_;
     my $info = $options{info};
     
     my $result = deferred;
