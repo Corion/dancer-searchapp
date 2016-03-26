@@ -15,6 +15,11 @@
 The pages should use L<Dancer::Layout::Bootstrap>, or at least
 an upgraded version of that.
 
+=head3 HTTP Manifest
+
+To speed up "loading" of the assets even more, the assets
+should be stored on the client as a HTTP / HTML manifest
+
 =head3 C<robots.txt>
 
 The app should prevent being spidered itself by always providing an
