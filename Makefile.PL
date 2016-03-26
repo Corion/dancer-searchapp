@@ -56,6 +56,17 @@ WriteMakefile1(
 
         # For rendering our development Pod
         'Pod::POM' => 0,
+
+        # For the IMAP/mail support, until we spin that off
+        'Mail::ImapClient' => 0,
+        'MIME::WordDecoder' => 0,
+        'MIME::Base64' => 0,
+        'MIME::QuotedPrint' => 0,
+        'Scalar::Util' => 0,
+        'Encode' => 0,
+        'Text::Markdown' => 0,
+        'HTTP::Date' => 0,
+        'Time::Piece' => 0,
         
         # CORION::Apache::Tika included until we spin it off
         

@@ -6,7 +6,6 @@ use MIME::QuotedPrint;
 use Scalar::Util qw(weaken);
 use Encode qw(decode);
 use Text::Markdown ();
-use Text::CleanFragment;
 use HTTP::Date qw( time2isoz );
 use Time::Piece;
 #use 5.016; # for fc
@@ -128,13 +127,13 @@ Finds the preferred body type or one of HTML, PLAIN
 sub best_alternative {
     my( $self, $body ) = @_;
     my $part;
-    ($part)=     grep { warn $_ . " (". $_->bodysubtype . ")";
+    ($part)=     grep { #warn $_ . " (". $_->bodysubtype . ")";
                         'HTML' eq uc $_->bodysubtype
                       }
                  grep { 'HEAD' ne $_->bodytype }
                  $body->bodystructure;
     if(! $part) {
-      ($part) = grep { warn $_ . " (". $_->bodysubtype . ")";
+      ($part) = grep { #warn $_ . " (". $_->bodysubtype . ")";
                         'PLAIN' eq $_->bodysubtype
                       }
                  grep { 'HEAD' ne $_->bodytype }
