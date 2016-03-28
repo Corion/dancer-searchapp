@@ -138,13 +138,15 @@ sub fs_recurse {
     my @folders;
 
     for my $folderspec (@{$config->{directories}}) {
-        if( ! exists $folderspec->{exclude} ) {
-            # By default, exclude hidden files
-            $folderspec->{exclude} = [qr/^\./];
-        };
+        
+        #if( ! exists $folderspec->{exclude} ) {
+        #    # By default, exclude hidden files
+        #    $folderspec->{exclude} = [qr/^\./];
+        #};
         if( ! ref $folderspec ) {
             # plain name, use this folder
             push @folders, dir($folderspec)
+            
         } else {
             my $dir = dir($folderspec->{folder});
             push @folders, $dir;
@@ -233,6 +235,7 @@ sub get_file_info {
     
     my $ctime = (stat $file)[10];
     $res{ creation_date } = strftime('%Y-%m-%d %H:%M:%S', localtime($ctime));
+    $res{ url } ||= "$file";
     \%res
 }
 
