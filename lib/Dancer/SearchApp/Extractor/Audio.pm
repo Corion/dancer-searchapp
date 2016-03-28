@@ -35,7 +35,7 @@ sub examine {
         
         # If we have a filename, use that
         if( $file ) {
-            $mp3 = MP3::Tag->new($file);
+            $mp3 = MP3::Tag->new("$file");
             
             my $ctime = (stat $file)[10];
             $res{ creation_date } = strftime('%Y-%m-%d %H:%M:%S', localtime($ctime));
