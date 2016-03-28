@@ -17,7 +17,7 @@ regen_README('lib/Dancer/SearchApp.pm');
 my @tests = map { glob $_ } 't/*.t', 't/*/*.t';
 
 WriteMakefile1(
-    MIN_PERL_VERSION => '5.018', # because I use signatures
+    #MIN_PERL_VERSION => '5.018', # because I use signatures
     NAME                => 'Dancer::SearchApp',
     AUTHOR              => q{Max Maischein <corion@cpan.org>},
     VERSION_FROM        => 'lib/Dancer/SearchApp.pm',
