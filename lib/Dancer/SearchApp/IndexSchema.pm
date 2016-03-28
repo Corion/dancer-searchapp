@@ -30,7 +30,7 @@ sub multilang_text($$) {
                    "type" => "string",
                    "analyzer" => $analyzer,
                    "index" => "analyzed",
-                     "store" => $true,
+                    "store" => $true,
                },
                #"${name}_raw" => {
                #     "type" => "string",

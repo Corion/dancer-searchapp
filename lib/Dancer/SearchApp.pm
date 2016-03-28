@@ -175,14 +175,36 @@ get '/' => sub {
         };
     };
     
-    # Output the search results
-    template 'index', {
-            results => ($results ? $results->{hits} : undef ),
-            params => {
-                q    => $search_term,
-                from => $from,
-                size => $size,
-            },
+    if( $results and exists params->{lucky}) {
+        my $first = $results->{ hits }->{hits}->[0];
+        
+        if( $first ) {
+            my( $index, $type, $id ) = @{$first}{qw(index type id)};
+            warn "Redirecting/reproxying first document";
+            if( $type eq 'http' ) {
+                return
+                    redirect $id
+            } else {
+                my $doc = $first->{source};
+                my $local = URI::file->new( $id )->file;
+                return
+                    reproxy( $doc, $local, 'Inline',
+                        index => $index,
+                        type => $type,
+                );
+            }
+        };
+    } else {
+    
+        # Output the search results
+        template 'index', {
+                results => ($results ? $results->{hits} : undef ),
+                params => {
+                    q    => $search_term,
+                    from => $from,
+                    size => $size,
+                },
+        };
     };
 };
 
