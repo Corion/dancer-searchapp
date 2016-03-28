@@ -1,3 +1,11 @@
+<link rel="stylesheet" href="/css/typeahead-bootstrap-3-fix/typeahead.css" />
+
+<!-- Styling for the autosuggestion feature, this should move into
+     its own CSS or the main CSS, some day -->
+<style>
+.tt-highlight { font-weight: 1200 };
+</style>
+
 <div id="page">
       <div id="content">
         <div id="header">
@@ -70,3 +78,28 @@
 
       </div>
 </div>
+<script src="<% request.uri_base %>/javascripts/typeahead/typeahead-0.11.1.bundle.js"></script>
+<script>
+var urlBase = '<% request.uri_for('/suggest') %>';
+var fetch = new Bloodhound({
+  datumTokenizer: Bloodhound.tokenizers.obj.whitespace('value'),
+  queryTokenizer: Bloodhound.tokenizers.whitespace,
+  // prefetch: urlBase,
+  remote: {
+    url: urlBase + '/%QUERY.json',
+    wildcard: '%QUERY'
+  }
+});
+
+$('#q').typeahead({
+    highlight: true,
+    minLength: 1
+  },
+  {
+  name: 'fetch',
+  display: 'value',
+  source: fetch,
+});
+
+$('#q').focus();
+</script>

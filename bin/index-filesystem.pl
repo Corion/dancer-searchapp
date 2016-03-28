@@ -20,8 +20,8 @@ use Dancer::SearchApp::IndexSchema qw(create_mapping find_or_create_index %indic
 use Dancer::SearchApp::Utils qw(await);
 use Dancer::SearchApp::Extractor;
 
-#use lib 'C:/Users/Corion/Projekte/Apache-Tika/lib';
 use CORION::Apache::Tika::Server;
+#use Apache::Tika::Server;
 
 use JSON::MaybeXS;
 my $true = JSON->true;
@@ -70,7 +70,7 @@ my $e = Search::Elasticsearch::Async->new(
 
 my $extractor = 'Dancer::SearchApp::Extractor';
 
-my $tika_glob = 'C:/Users/Corion/Projekte/Apache-Tika/jar/tika-server-*.jar';
+my $tika_glob = 'C:/Users/Corion/Projekte/Apache-Tika-Async/jar/tika-server-*.jar';
 my $tika_path = (sort { my $ad; $a =~ /server-1.(\d+)/ and $ad=$1;
                 my $bd; $b =~ /server-1.(\d+)/ and $bd=$1;
                 $bd <=> $ad
@@ -313,6 +313,7 @@ for my $folder (@folders) {
             ->then( sub {
                 my( $full_name ) = @_;
                 #warn $msg->{mime_type};
+                
                 # https://www.elastic.co/guide/en/elasticsearch/guide/current/one-lang-docs.html
                 #warn "Storing document into $full_name";
                 $e->index({
@@ -321,9 +322,9 @@ for my $folder (@folders) {
                         id      => $msg->{url}, # we want to overwrite
                         # index bcc, cc, to, from
                         body    => $msg # "body" for non-bulk, "source" for bulk ...
-                        #source    => $msg
                  });
                })->then(sub{
+                   # Also add the document to the potential keywords for suggestion
                    #warn "Done."
                }, sub {warn $_ for @_ });
        } @entries

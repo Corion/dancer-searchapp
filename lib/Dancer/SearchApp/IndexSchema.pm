@@ -25,13 +25,23 @@ sub multilang_text($$) {
     my($name, $analyzer)= @_;
     return { 
           "type" => "multi_field",
+          #"type" => "string",
+
+          # Also for the suggestion box
           "fields" =>  {
-               $name => {
+              $name => {
                    "type" => "string",
                    "analyzer" => $analyzer,
                    "index" => "analyzed",
                     "store" => $true,
-               },
+              },
+              "autocomplete" => {
+                  "analyzer" => "analyzer_shingle",
+                  "search_analyzer" => "analyzer_shingle",
+                  "index_analyzer" => "analyzer_shingle",
+                  "type" => "string",
+                   "store" => $true,
+              }
                #"${name}_raw" => {
                #     "type" => "string",
                #     "index" => "not_analyzed",
@@ -131,11 +141,38 @@ sub find_or_create_index {
                 $e->indices->create(index=>$full_name,
                     body => {
                     settings => {
+                        analysis => {
+                            analyzer => {
+                                "analyzer_shingle" => {
+                                   "tokenizer" => "standard",
+                                   "filter" => ["standard", "lowercase", "filter_stop", "filter_underscores", "filter_shingle"],
+                                },
+                            },
+                            "filter" => {
+                                "filter_underscores" => {
+                                   "type" => "stop",
+                                   "stopwords" => ['_'],
+                                },
+                                "filter_stop" => {
+                                   "type" => "stop",
+                                   # We'll need another filter to filter out the underscores...
+                                },
+                                "filter_shingle" => {
+                                   "type" =>"shingle",
+                                   "max_shingle_size" => 5,
+                                   "min_shingle_size" => 2,
+                                   "output_unigrams" => $true,
+                                },
+                                "ngram" => {
+                                  "type" => "ngram",
+                                  "min_gram" => 2,
+                                  "max_gram" => 15, # long enough even for German
+                                },
+                            },
+                        },
+                        
                         mapper => { dynamic => $false }, # this is "use strict;" for ES
                         "number_of_replicas" => 0,
-                        #"analysis" => {
-                        #    "analyzer" => $analyzers{ $lang }
-                        #},
                     },
                     "mappings" => {
                         # Hier muessen/sollten wir wir die einzelnen Typen definieren

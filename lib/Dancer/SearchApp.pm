@@ -316,6 +316,75 @@ get '/inline/:index/:type/:id' => sub {
     
 };
 
+# This is likely a really bad design choice which I will regret later.
+# Most likely, manually encoding to JSON would be the saner approach
+# instead of globally setting a serializer for all routes.
+set 'serializer' => 'JSON';
+
+get '/suggest/:query.json' => sub {
+    my( $q ) = params->{query};
+    warn "Completing '$q'";
+    
+    return [] unless $q and $q =~ /\S/;
+    
+    # Strip leading/trailing whitespace, Justin Case
+    $q =~ s!^\s+!!;
+    $q =~ s!\s+$!!;
+
+    # Reinitialize indices
+    # Some day, we could cache that/not refresh them all the time    
+    %indices = %{ search->indices->get({index => ['*']}) };
+
+    my @restrict_type;
+    my $type;
+    if( $type = params->{'type'} and $type =~ m!([a-z0-9+-]+)/[a-z0-9+-]+!i) {
+        #warn "Filtering for '$type'";
+        @restrict_type = (filter => { term => { mime_type => $type }});
+    };
+        
+    # This should be centralized
+    my @fields = ('title','content', 'author');
+    
+    # Query all suggestive fields at once:
+    my %suggest_query = map {;
+        "my_suggestions_$_" => {
+            phrase  => {
+                field => "$_.autocomplete",
+                #field => "$_",
+                #text => $q,
+            }
+        }
+    } @fields;
+    
+    warn Dumper \%suggest_query;
+    
+    # Move this to an async query, later
+    my $index = config->{elastic_search}->{index};
+    my $results = search->suggest(
+        index => 'dancer-searchapp-sk', #[ grep { /^\Q$index\E/ } sort keys %indices ],
+        body    => {
+            text  => $q,
+            %suggest_query
+        }
+    );
+    
+    warn Dumper $results;
+    
+    my %suggestions;
+    my @res = map {; +{
+                  #value => $_->{},
+                  tokens => [split //, $_->{text}],
+                  value => $_->{text},
+              } }
+              sort { $b->{score} <=> $a->{score} || $b cmp $a } # sort by score+asciibetically descending
+              map { $_->{options} ? @{ $_->{options} } : () } # unwrap again
+              map { @$_ } # unwrap
+              grep { ref $_ eq 'ARRAY' } values %$results
+              ;
+    
+    return \@res;
+};
+
 true;
 
 __END__
