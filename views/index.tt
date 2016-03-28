@@ -5,11 +5,29 @@
         </div>
         <a href="<% request.uri_for( '/', { q => params.q, type => "" }) %>">All Files</a>
         <a href="<% request.uri_for( '/', { q => params.q, type => "audio/mpeg" }) %>">Audio Files</a>
-        <form action="/" 	method="GET" enctype="multipart/form-data">
-        <div id="bloodhound">
-          <input class="typeahead" name="q" type="text" placeholder="Your query" value="<% params.q |html %>">
-        </div>
-        <input type="hidden" name="type" value="<% params.type %>">
+        <form action="/" method="GET" enctype="multipart/form-data">
+          <div class="row">
+          <div class="form-group">
+          <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6 col-lg-offset-3">
+              <input id="q" name="q" class="form-control col-xs-12 col-lg-12" type="text" placeholder="Your query" value="<% params.q |html %>">
+          </div>
+          </div>
+          </div>
+
+          <div class="row">
+          <div class="col-md-12 col-lg-6">&nbsp;</div>
+          </div>
+
+          <div class="form-group">
+          <div id="buttons" class="row">
+            <div class="text-center">
+              <button type="submit" name="Go" class="btn btn-default">Go</button>
+              <button type="submit" name="lucky" class="btn">I'm feeling lucky</button>
+            </div>
+          </div>
+          </div>
+
+          <input type="hidden" name="type" value="<% params.type %>">
         </form>
         <a href="<% request.uri_for( '/', { q => params.q, type => params.type, from => params.from + params.size, size => params.size }) %>">Next <% params.size %></a>
         <% IF statistics %>
