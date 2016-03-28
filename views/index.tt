@@ -3,6 +3,9 @@
         <div id="header">
           <h1>Search results</h1>
         </div>
+        <!-- Autocompletion -->
+        <!-- https://www.elastic.co/guide/en/elasticsearch/reference/current/search-suggesters-completion.html -->
+
         <a href="<% request.uri_for( '/', { q => params.q, type => "" }) %>">All Files</a>
         <a href="<% request.uri_for( '/', { q => params.q, type => "audio/mpeg" }) %>">Audio Files</a>
         <form action="/" method="GET" enctype="multipart/form-data">
@@ -40,8 +43,6 @@
             <!-- paginate later, if at all -->
             <% FOR hit IN results.hits %>
               <div class="result">
-              <!-- Autocompletion -->
-              <!-- https://www.elastic.co/guide/en/elasticsearch/reference/current/search-suggesters-completion.html -->
               <h3>
               <p><% hit.source.folder %></p>
               <% IF hit.type == "mail" %>
