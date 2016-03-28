@@ -6,7 +6,9 @@
         <a href="<% request.uri_for( '/', { q => params.q, type => "" }) %>">All Files</a>
         <a href="<% request.uri_for( '/', { q => params.q, type => "audio/mpeg" }) %>">Audio Files</a>
         <form action="/" 	method="GET" enctype="multipart/form-data">
-        <input type="text" name="q" value="<% params.q |html %>">
+        <div id="bloodhound">
+          <input class="typeahead" name="q" type="text" placeholder="Your query" value="<% params.q |html %>">
+        </div>
         <input type="hidden" name="type" value="<% params.type %>">
         </form>
         <a href="<% request.uri_for( '/', { q => params.q, type => params.type, from => params.from + params.size, size => params.size }) %>">Next <% params.size %></a>

@@ -4,7 +4,9 @@
           <h1>Search results</h1>
         </div>
         <form action="/" 	method="GET" enctype="multipart/form-data">
-        <input type="text" name="q" value="<% params.q |html %>">
+        <div id="bloodhound">
+          <input class="typeahead" name="q" type="text" placeholder="Your query" value="<% params.q |html %>">
+        </div>
         </form>
         <a href="<% backlink |html %>">Back to results</a>
         <h3><% result.title |html %></a> - <% result.creation_date |html %> <% result.language %> / <% result.basic_mime_type %></h3>
