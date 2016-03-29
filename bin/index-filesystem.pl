@@ -221,18 +221,19 @@ sub get_file_info {
         } else {
             
             # Just use what Tika found
-
+            
             use HTML::Restricted;            
             my $p = HTML::Restricted->new();
             my $r = $p->filter( $info->content );
 
-            $res{ title } = $meta->{"meta:title"} || $file->basename;
+            $res{ title } = $meta->{"dc:title"} || $meta->{"title"} || $file->basename;
             $res{ author } = $meta->{"meta:author"}; # as HTML
             $res{ language } = $meta->{"meta:language"};
             $res{ content } = $r->as_HTML; # as HTML
+            
         }
     }
-    
+
     my $ctime = (stat $file)[10];
     $res{ creation_date } = strftime('%Y-%m-%d %H:%M:%S', localtime($ctime));
     $res{ url } ||= "$file";
