@@ -323,7 +323,7 @@ set 'serializer' => 'JSON';
 
 get '/suggest/:query.json' => sub {
     my( $q ) = params->{query};
-    warn "Completing '$q'";
+    #warn "Completing '$q'";
     
     return [] unless $q and $q =~ /\S/;
     
@@ -388,7 +388,7 @@ get '/suggest/:query.json' => sub {
         }
     );
     
-    warn Dumper $results;
+    #warn Dumper $results;
     
     my %suggestions;
     my @res = map {; +{
