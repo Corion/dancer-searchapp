@@ -318,7 +318,8 @@ for my $folder (@folders) {
                 # munge the title so we get magic completion for document titles:
                 # This should be mostly done in an Elasticsearch filter+analyzer combo
                 # Except for bands/song titles, which we want to manually munge
-                my @parts = ((split /\s+/, $msg->{title}),
+                my @parts = map {lc $_}
+                            ((split /\s+/, $msg->{title}),
                             (split m![\\/]!, $msg->{url}));
                 $msg->{title_suggest} = {
                     input => \@parts,
