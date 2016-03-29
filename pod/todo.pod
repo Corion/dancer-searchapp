@@ -52,6 +52,22 @@ This also entails information about things that are not files. Ideally,
 we can render information about a "person" using a different template
 as well, even though a "person" does not have a mime type associated with it.
 
+=head4 Rendering of links into mail applications
+
+Currently, links to mails are hardcoded to use Thunderlink for Thunderbird.
+Lotus Notes mails will need different deep links as outlined in
+L<http://www.wissel.net/blog/d6plinks/SHWL-7PL67C>.
+
+  notes://servername/database/view/documentuniqueid
+
+Basically, this means that for mails, we will need to store more than one
+"unique" ID or alternatively decide on the ID to store in the crawler.
+
+Maybe we should store a (preferred) rendertype for items and render a
+subtemplate based on that rendertype. This would allow different URLs for
+links to Message-ID mails and Lotus Notes mails. It would still mean that
+we need to store more fields for email entries.
+
 =head3 Customization
 
 =head4 Auto-session
@@ -186,6 +202,11 @@ Show example C<SELECT> statement
     , product_description as content
   FROM products
 
+=head3 Lotus Notes Crawler
+
+Repurpose L<https://perlmonks.org?node_id=449873> (and its replies)
+for better enterprise integration
+
 =head3 Create Dancer-crawler
 
 Skip the HTTP generation process
@@ -231,6 +252,17 @@ Implement metasearch across multiple ES instances
 
 We want a field to store when we last visited an URL so we
 don't always reindex files with every run.
+
+=head2 Index maintenance
+
+=head3 Autocompletion
+
+Autocompletion needs to associate keywords with documents. These could
+come from a local C<.searchapp> file or better be stored per-URL / per-document
+in an SQLite database for easy index reconstruction.
+
+This needs close correlation with synonyms, which also could be (filesystem-)
+local for a (shared) folder or (user-)global in an SQLite database.
 
 =head2 Crawl queue(s)
 
