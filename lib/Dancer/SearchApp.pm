@@ -223,6 +223,7 @@ get '/cache/:index/:type/:id' => sub {
         return template 'view_document', {
             result => $document,
             backlink => scalar( request->referer ),
+            # we should also save the page offset...
         }
     } else {
         status 404;

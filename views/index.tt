@@ -60,7 +60,7 @@
               <a href="<% hit.source.url %>" >
               <% ELSE %>
               <!-- file -->
-              <a href="/cache/<%hit.index |uri%>/<%hit.type |uri%>/<% hit.id | uri | uri %>">
+              <a href="/cache/<%hit.index |uri%>/<%hit.type |uri%>/<% hit.id | uri | uri %>?q=<% params.q |uri %>">
               <% END %>
               <% hit.source.title |html %>
               </a> - (<% hit.type %>) - <% hit.source.creation_date |html %> <% hit.source.language %>(<a href="/open/<%hit.index |uri%>/<%hit.type |uri%>/<% hit.id | uri | uri %>">download</a>)</h3>
