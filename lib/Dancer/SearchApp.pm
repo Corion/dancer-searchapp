@@ -343,28 +343,48 @@ get '/suggest/:query.json' => sub {
     };
         
     # This should be centralized
-    my @fields = ('title','content', 'author');
+    # This is "did you mean X"
+    #my @fields = ('title','content', 'author');
+    
+    # Query all suggestive fields at once:
+    #my %suggest_query = map {;
+    #    "my_suggestions_$_" => {
+    #        phrase  => {
+    #            field => "$_.autocomplete",
+    #            #field => "$_",
+    #            #text => $q,
+    #        }
+    #    }
+    #} @fields;
+    
+    my @fields = ('title_suggest');
     
     # Query all suggestive fields at once:
     my %suggest_query = map {;
-        "my_suggestions_$_" => {
+        "my_completions_$_" => {
             phrase  => {
-                field => "$_.autocomplete",
+                field => "title_suggest",
                 #field => "$_",
                 #text => $q,
             }
         }
     } @fields;
-    
-    warn Dumper \%suggest_query;
+
+    #warn Dumper \%suggest_query;
     
     # Move this to an async query, later
     my $index = config->{elastic_search}->{index};
     my $results = search->suggest(
-        index => 'dancer-searchapp-sk', #[ grep { /^\Q$index\E/ } sort keys %indices ],
+        index => [ grep { /^\Q$index\E/ } sort keys %indices ],
         body    => {
-            text  => $q,
-            %suggest_query
+            foo => {
+                text  => $q,
+                completion => {
+                    field => 'title_suggest',
+                    "fuzzy" => 2, # edit distance of 2
+                }
+            }
+            #%suggest_query
         }
     );
     

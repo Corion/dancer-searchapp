@@ -252,6 +252,18 @@ for my $folder (@folders) {
                 find_or_create_index($e, $index_name,$lang, 'mail')
             ->then( sub {
                 my( $full_name ) = @_;
+                
+                # munge the title so we get magic completion for document titles:
+                # This should be mostly done in an Elasticsearch filter+analyzer combo
+                # Except for bands/song titles, which we want to manually munge
+                my @parts = (split /\s+/, $msg->subject);
+                $msg->{title_suggest} = {
+                    input => \@parts,
+                    output => $msg->{title},
+                    # Maybe some payload to directly link to the document. Later
+                };
+
+                
                 # https://www.elastic.co/guide/en/elasticsearch/guide/current/one-lang-docs.html
                 #warn "Storing document";
                 $e->index({
@@ -268,7 +280,7 @@ for my $folder (@folders) {
                             folder    => $msg->{folder},
                             #from    => $msg->from,
                             #to      => [ $msg->recipients ],
-                            content => "From: " . $msg->from .  " To: " . join( ",", $msg->recipients ) . "\n" . $body,
+                            content => "From: " . join( ",", $msg->from ) .  "<br/>\n To: " . join( ",", $msg->recipients ) . "<br/>\n" . $body,
                             language => $lang,
                             date    => $msg->date->strftime('%Y-%m-%d %H:%M:%S'),
                         }

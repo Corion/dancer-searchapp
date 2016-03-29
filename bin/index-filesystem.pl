@@ -315,6 +315,17 @@ for my $folder (@folders) {
                 my( $full_name ) = @_;
                 #warn $msg->{mime_type};
                 
+                # munge the title so we get magic completion for document titles:
+                # This should be mostly done in an Elasticsearch filter+analyzer combo
+                # Except for bands/song titles, which we want to manually munge
+                my @parts = ((split /\s+/, $msg->{title}),
+                            (split m![\\/]!, $msg->{url}));
+                $msg->{title_suggest} = {
+                    input => \@parts,
+                    output => $msg->{title},
+                    # Maybe some payload to directly link to the document. Later
+                };
+                
                 # https://www.elastic.co/guide/en/elasticsearch/guide/current/one-lang-docs.html
                 #warn "Storing document into $full_name";
                 $e->index({

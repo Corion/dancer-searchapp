@@ -35,18 +35,15 @@ sub multilang_text($$) {
                    "index" => "analyzed",
                     "store" => $true,
               },
+              # This is misnamed - it's more the autocorrect filter
+              # usable for "did you mean XY" responses
               "autocomplete" => {
                   "analyzer" => "analyzer_shingle",
                   "search_analyzer" => "analyzer_shingle",
                   "index_analyzer" => "analyzer_shingle",
                   "type" => "string",
                    "store" => $true,
-              }
-               #"${name}_raw" => {
-               #     "type" => "string",
-               #     "index" => "not_analyzed",
-               #      "store" => $true,
-               #},
+              },
           }
     };
 };
@@ -77,6 +74,16 @@ sub create_mapping {
         "properties" => {
             "url"        => { type => "string" }, # file://-URL
             "title"      => multilang_text('title',$analyzer),
+
+            # Automatic (title) completion to their documents
+            # https://www.elastic.co/blog/you-complete-me
+            "title_suggest" => {
+                  "type" => "completion",
+                  "payloads" => $true,
+                  # Also add synonym filter
+                  # Also add lowercase anaylzer
+            },
+            
             "author"     => multilang_text('author', $analyzer),
             "content"    => multilang_text('content',$analyzer),
             "folder"     => {
