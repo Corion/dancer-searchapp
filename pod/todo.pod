@@ -10,11 +10,6 @@
 
 =head2 Pages
 
-=head3 Grid / Layout
-
-The pages should use L<Dancer::Layout::Bootstrap>, or at least
-an upgraded version of that.
-
 =head3 HTTP Manifest
 
 To speed up "loading" of the assets even more, the assets
@@ -31,9 +26,9 @@ C<robots.txt> yet.
 
 =head3 Search page
 
-* Autocomplete/recommend
+Autosearch without pressing "Go"
 
-L<http://twitter.github.io/typeahead.js/>
+Display entry URL + title in the autocomplete dropdown
 
 =head3 Simple (HTML) Results page
 
@@ -175,6 +170,10 @@ Create screencasts using L<http://www.openshot.org/videos/>
 
 The first start should be as configuration-free as possible.
 
+=head3 Demo data
+
+Use the Enron mail corpus?
+
 =head2 Site walk through
 
 Use one of the fancy Javascript walk-through implementation to offer
@@ -292,6 +291,18 @@ resources.
 
 =head3 Google Sitemap scanner
 
+=head3 Hibiscus importer
+
+This would immediately make all money transactions from Hibiscus
+available for searching.
+
+Can Hibiscus directly show a single transaction from the outside?
+
+=head2 Interesting additional datasets
+
+Open movie database L<http://omdbapi.com/> - has dumps available
+
+Discogs data dumps - L<http://data.discogs.com/>
 
 =head2 Automatic search
 

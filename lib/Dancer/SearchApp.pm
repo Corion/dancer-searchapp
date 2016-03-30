@@ -393,9 +393,9 @@ get '/suggest/:query.json' => sub {
     
     my %suggestions;
     my @res = map {; +{
-                  #value => $_->{},
                   tokens => [split //, $_->{text}],
                   value => $_->{text},
+                  url   => $_->{payload}->{url},
               } }
               sort { $b->{score} <=> $a->{score} || $b cmp $a } # sort by score+asciibetically descending
               map { $_->{options} ? @{ $_->{options} } : () } # unwrap again

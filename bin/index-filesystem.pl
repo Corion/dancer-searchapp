@@ -324,7 +324,12 @@ for my $folder (@folders) {
                 $msg->{title_suggest} = {
                     input => \@parts,
                     output => $msg->{title},
+                    
                     # Maybe some payload to directly link to the document. Later
+                    payload => {
+                            url => $msg->{url}
+                            # , $msg->{mime_type}
+                        },
                 };
                 
                 # https://www.elastic.co/guide/en/elasticsearch/guide/current/one-lang-docs.html

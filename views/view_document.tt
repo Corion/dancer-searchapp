@@ -68,6 +68,9 @@ $('#q').typeahead({
   name: 'fetch',
   display: 'value',
   source: fetch,
+  templates: {
+    suggestion: function(obj) {return '<div><strong>'+obj.value+'</strong><br><small>'+obj.url+'</small></div>'},
+  }
 });
 
 $('#q').focus();

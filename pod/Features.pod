@@ -6,6 +6,10 @@
 
 * Simple search
 
+* Autocomplete/recommend
+
+L<http://twitter.github.io/typeahead.js/>
+
 =head3 Result page (C</q=foo>)
 
 Document excerpts, even highlighted
