@@ -55,7 +55,7 @@ WriteMakefile1(
         'Data::Diver' => 0,
 
         # For rendering our development Pod
-        'Pod::POM' => 0,
+        'Plack::Middleware::Pod' => 0,
 
         # For the IMAP/mail support, until we spin that off
         'Mail::IMAPClient' => 0,

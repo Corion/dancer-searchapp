@@ -31,7 +31,6 @@ lib/Dancer/SearchApp/Utils.pm
 lib/HTML/Restricted.pm
 lib/Mail/Clean.pm
 lib/Mail/Email/IMAP.pm
-lib/Plack/Middleware/Pod.pm
 lib/Search/Elasticsearch/Plugin/Langdetect.pm
 lib/Search/Elasticsearch/Plugin/Langdetect/API.pm
 Makefile.PL
@@ -53,6 +52,7 @@ public/css/fonts/glyphicons-halflings-regular.ttf
 public/css/fonts/glyphicons-halflings-regular.woff
 public/css/fonts/glyphicons-halflings-regular.woff2
 public/css/style.css
+public/css/typeahead-bootstrap-3-fix/typeahead.css
 public/dispatch.cgi
 public/dispatch.fcgi
 public/favicon.ico
@@ -62,6 +62,7 @@ public/javascripts/bootstrap-3/bootstrap.js
 public/javascripts/bootstrap-3/bootstrap.min.js
 public/javascripts/jQuery/jquery-1.11.3.min.js
 public/javascripts/jQuery/jquery.ui.widget.js
+public/javascripts/typeahead/typeahead-0.11.1.bundle.js
 README
 README.mkdn
 t/001_base.t
