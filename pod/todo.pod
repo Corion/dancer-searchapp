@@ -63,6 +63,10 @@ subtemplate based on that rendertype. This would allow different URLs for
 links to Message-ID mails and Lotus Notes mails. It would still mean that
 we need to store more fields for email entries.
 
+Also, for example Perl files should get a Perl syntax highlighter
+or at least a "code" view. The same should likely hold for all other
+(text) files whose more refined type we can recognize.
+
 =head3 Customization
 
 =head4 Auto-session
@@ -144,9 +148,11 @@ Playlists should ideally also hotlink their contents
 
 =head2 Test data
 
-* Consider importing a Wikipedia dump
+Consider importing a Wikipedia dump
 
-* Some other larger, mixed corpus, like http://eur-lex.europa.eu/
+Some other larger, mixed corpus, like http://eur-lex.europa.eu/
+
+Use the Enron mail corpus?
 
 =head2 Synonyms
 
@@ -169,10 +175,6 @@ Create screencasts using L<http://www.openshot.org/videos/>
 =head2 First Start Experience
 
 The first start should be as configuration-free as possible.
-
-=head3 Demo data
-
-Use the Enron mail corpus?
 
 =head2 Site walk through
 
