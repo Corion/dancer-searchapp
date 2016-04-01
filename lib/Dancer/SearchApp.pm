@@ -87,7 +87,9 @@ sub add_api_headers {
 
 sub search {
     if( ! $es ) {
-        my $nodes = config->{elastic_search}->{nodes};
+        my $nodes = $config->{elastic_search}->{nodes};
+        $nodes = [split /,/, $nodes] # our config system doesn't provide for lists...
+            unless ref $nodes;
         $es = Search::Elasticsearch->new(
             nodes => $nodes,
         );
