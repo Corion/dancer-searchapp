@@ -4,19 +4,23 @@ FROM        perl:latest
 MAINTAINER  Max Maischein <corion@corion.net>
 
 # For running Tika
-#RUN apt-get update && apt-get install default-jre-headless
-RUN apt-get update && apt-get install -y default-jre-headless
+RUN apt-get update && apt-get install -y \
+  default-jre-headless \
+  cpanminus \
+  twiggy \
+   && rm -rf /var/lib/apt/lists/*
 
-RUN curl -L http://cpanmin.us | perl - App::cpanminus
-RUN cpanm Twiggy
-
-RUN git clone git://192.168.99.1/Dancer-SearchApp
+RUN mkdir -p Dancer-SearchApp
 
 # Install Tika
-RUN mkdir Dancer-SearchApp/jar && curl http://www.apache.org/dyn/closer.cgi/tika/tika-server-1.12.jar -o Dancer-SearchApp/jar/tika-server-1.12.jar
+RUN mkdir Dancer-SearchApp/jar \
+&& curl http://www.apache.org/dyn/closer.cgi/tika/tika-server-1.12.jar -o Dancer-SearchApp/jar/tika-server-1.12.jar
 
 # Install Elasticsearch
 # + Language detection plugin
+
+# Copy the current build into the Docker image
+COPY ../ Dancer-SearchApp/
 
 # Install App prerequisites
 RUN cd Dancer-SearchApp && cpanm --installdeps .
@@ -29,4 +33,7 @@ EXPOSE 8080
 WORKDIR Dancer-SearchApp
 # ENV # the elasticsearch we will use to store the data
 ENTRYPOINT ["plackup","-s","Twiggy", "-a", "bin/app.pl"]
+VOLUME /config
+# use docker run -d -P -name config -v ../config-examples:/config ...
+VOLUME /es-data
 CMD ["--port", "8080"] 

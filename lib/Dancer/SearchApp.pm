@@ -78,6 +78,13 @@ my $config = get_defaults(
     ],
 );
 
+# A small helper subroutine that adds some API headers that result in
+# the API not being interpretable as pages to be displayed by a browser
+sub add_api_headers {
+    header 'Content-Disposition' => 'attachment; filename="1.txt"';
+    header 'X-Content-Type-Options' => 'nosniff';
+};
+
 sub search {
     if( ! $es ) {
         my $nodes = config->{elastic_search}->{nodes};
@@ -403,6 +410,7 @@ get '/suggest/:query.json' => sub {
               grep { ref $_ eq 'ARRAY' } values %$results
               ;
     
+    add_api_headers;
     return \@res;
 };
 
