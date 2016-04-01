@@ -195,6 +195,18 @@ an optional walk-through through the search page and results page.
 
 =head2 Crawlers
 
+=head3 Single URL submitter
+
+Submit HTML and an URL into the index
+
+    submit-url --url '' --html ''
+
+    submit-url --file '' --html ''
+
+    submit-url --json '{ url: "", "content" : "", ... }'
+
+This allows for custom handling of single entries
+
 =head3 File system crawler
 
 Don't import hidden files by default
