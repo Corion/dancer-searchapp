@@ -61,20 +61,20 @@ sub get_defaults {
         my ($result_name, $config_name, $env_name, $hard_default) = @$entry;
         
         if( defined $env_name and exists $env->{ $env_name } ) {
-            #print "Using $env_name from environment\n";
+            #warn "Using $env_name from environment\n";
             my $result_loc = DiveRef($result, split m!/!, $result_name);
             $$result_loc //= $env->{ $env_name };
         };
         
         my $val = Dive( $config, split m!/!, $config_name );
         if( defined $config_name and defined( $val )) {
-            #print "Using $config_name from config ('$val')\n";
+            #warn "Using $config_name from config ('$val')\n";
             my $result_loc = DiveRef($result, split m!/!, $result_name);
             $$result_loc //= $val;
         };
         
         if( ! defined Dive($result, split m!/!, $result_name) and defined $hard_default) {
-            #print "No $config_name from config, using hardcoded default\n";
+            #warn "No $config_name from config, using hardcoded default\n";
             #print "Using $result_name from hard defaults ($hard_default)\n";
             my $result_loc = DiveRef($result, split m!/!, $result_name);
             $$result_loc = $hard_default;
