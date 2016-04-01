@@ -77,6 +77,16 @@ Basically, add the new term to the last terms instead of doing a new search
 based only on the new term. Usually, boost the new term, maybe by factor 2
 over the old terms. Provide a link to I<only> search for the new term instead.
 
+=head3 Lock down all pages according to OWASP
+
+Just in case some malicious content gets through our (lame) filters
+or gets inserted by a script that doesn't properly sanitize the input,
+make sure we can't get rehosted in a (non-localhost) iframe and we can't
+run (non-localhost) Javascript.
+
+Also consider reproxying all external resources, thus allowing absolutely
+no outside links at all on our pages.
+
 =head2 Plack
 
 * L<Plack>-hook/example for C</search> to tie up the search application
