@@ -3,7 +3,7 @@ use strict;
 use Moo;
 
 use vars qw($VERSION $es $server);
-$VERSION = '0.03';
+$VERSION = '0.05';
 
 =head1 NAME
 
@@ -40,6 +40,8 @@ or a glorified hash.
 
 =head2 C<< ->title >>
 
+=head2 C<< ->folder >>
+
 =head2 C<< ->language >>
 
 =cut
@@ -50,7 +52,10 @@ has url => (
     #isa => 'Str',
 );
 
+{
+no warnings 'once';
 *id = \*url;
+}
 
 has mime_type => (
     is => 'ro',
@@ -73,6 +78,11 @@ has content => (
 );
 
 has title => (
+    is => 'ro',
+    #isa => 'Str',
+);
+
+has folder => (
     is => 'ro',
     #isa => 'Str',
 );

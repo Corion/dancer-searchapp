@@ -6,6 +6,8 @@ SYNOPSIS
 
 QUICKSTART
 
+    Also see Dancer::SearchApp::Installation.
+
       cpanm --look Dancer::SearchApp
       
       # Install prerequisites
@@ -41,6 +43,9 @@ CONFIGURATION
       elastic_search:
         home: "./elasticsearch-2.1.1/"
         index: "dancer-searchapp"
+
+    The Elasticsearch instance to used can also be passed in %ENV as
+    SEARCHAPP_ES_NODES.
 
 SECURITY CONSIDERATIONS
 
@@ -84,7 +89,10 @@ TALKS
     I've given a talk about this module at Perl conferences:
 
     German Perl Workshop 2016, German
-    <http://corion.net/talks/dancer-searchapp/dancer-searchapp.html>
+    <http://corion.net/talks/dancer-searchapp/dancer-searchapp.de.html>
+
+    German Perl Workshop 2016, English
+    <http://corion.net/talks/dancer-searchapp/dancer-searchapp.en.html>
 
 BUG TRACKER
 

@@ -7,10 +7,12 @@ use URI::Escape 'uri_unescape';
 use URI::file;
 #use Search::Elasticsearch::TestServer;
 
+use Dancer::SearchApp::Defaults 'get_defaults';
+
 use Dancer::SearchApp::Entry;
 
 use vars qw($VERSION $es %indices);
-$VERSION = '0.03';
+$VERSION = '0.05';
 
 =head1 NAME
 
@@ -19,6 +21,8 @@ Dancer::SearchApp - A simple local search engine
 =head1 SYNOPSIS
 
 =head1 QUICKSTART
+
+Also see L<Dancer::SearchApp::Installation>.
 
   cpanm --look Dancer::SearchApp
   
@@ -56,18 +60,36 @@ Configuration happens through config.yml
     home: "./elasticsearch-2.1.1/"
     index: "dancer-searchapp"
 
+The Elasticsearch instance to used can also be passed in C<%ENV>
+as C<SEARCHAPP_ES_NODES>.
+
 =cut
 
 use Data::Dumper;
 $Data::Dumper::Sortkeys = 1;
 
+my $config = get_defaults(
+    env      => \%ENV,
+    config   => config(),
+    #defaults => \%
+    names => [
+        ['elastic_search/index' => 'elastic_search/index' => 'SEARCHAPP_ES_INDEX', 'searchapp'],
+        ['elastic_search/nodes' => 'elastic_search/nodes' => 'SEARCHAPP_ES_NODES', 'localhost:9200'],
+    ],
+);
+
+# A small helper subroutine that adds some API headers that result in
+# the API not being interpretable as pages to be displayed by a browser
+sub add_api_headers {
+    header 'Content-Disposition' => 'attachment; filename="1.txt"';
+    header 'X-Content-Type-Options' => 'nosniff';
+};
+
 sub search {
     if( ! $es ) {
-        my $nodes = $ENV{SEARCHAPP_ES_NODES};
-        $nodes = [ split /;/, $nodes ];
-        if( ! $nodes ) {
-            $nodes = config->{nodes} || [];
-        };
+        my $nodes = $config->{elastic_search}->{nodes};
+        $nodes = [split /,/, $nodes] # our config system doesn't provide for lists...
+            unless ref $nodes;
         $es = Search::Elasticsearch->new(
             nodes => $nodes,
         );
@@ -76,7 +98,7 @@ sub search {
     $es
 };
 
-$Template::Stash::PRIVATE = 1;
+$Template::Stash::PRIVATE = $Template::Stash::PRIVATE = 1;
 
 get '/' => sub {
     # Later, separate out the code paths between
@@ -86,28 +108,26 @@ get '/' => sub {
     my $statistics;
     my $results;
     
-    my $from = params->{'from'} || '';
+    my $from = params->{'from'} || 0;
     $from =~ s!\D!!g;
-    $from ||= 0;
-    my $size = params->{'size'} || '';
+    my $size = params->{'size'} || 25;
     $size =~ s!\D!!g;
-    $size ||= 10;
+    my $search_term = params->{'q'};
     
-    if( defined params->{'q'}) {
+    if( defined $search_term) {
         
-        warning "Reading ES indices\n";
+        #warning "Reading ES indices\n";
         %indices = %{ search->indices->get({index => ['*']}) };
-        warning $_ for sort keys %indices;
+        #warning $_ for sort keys %indices;
 
         my @restrict_type;
-        if( my $type = params->{'type'}) {
-        warn "Filtering for '$type'";
-            @restrict_type = (filter => { term => { mime_type => $type }})
-                if $type =~ m!^(\w+)/(\S+)!;
+        my $type;
+        if( $type = params->{'type'} and $type =~ m!([a-z0-9+-]+)/[a-z0-9+-]+!i) {
+            #warn "Filtering for '$type'";
+            @restrict_type = (filter => { term => { mime_type => $type }});
         };
         
         # Move this to an async query, later
-        my $search_term = params->{'q'};
         my $index = config->{elastic_search}->{index};
         $results = search->search(
             # Wir suchen in allen Sprachindices
@@ -120,7 +140,7 @@ get '/' => sub {
                         query => {
                             query_string => {
                                 query => $search_term,
-                                fields => ['title','content', 'author'] #'creation_date'] 
+                                fields => ['title','folder','content', 'author'] #'creation_date'] 
                             },
                         },
                         @restrict_type,
@@ -164,14 +184,36 @@ get '/' => sub {
         };
     };
     
-    # Output the search results
-    template 'index', {
-            results => ($results ? $results->{hits} : undef ),
-            params => {
-                q=> params()->{q},
-                from => $from,
-                size => $size,
-            },
+    if( $results and exists params->{lucky}) {
+        my $first = $results->{ hits }->{hits}->[0];
+        
+        if( $first ) {
+            my( $index, $type, $id ) = @{$first}{qw(index type id)};
+            warn "Redirecting/reproxying first document";
+            if( $type eq 'http' ) {
+                return
+                    redirect $id
+            } else {
+                my $doc = $first->{source};
+                my $local = URI::file->new( $id )->file;
+                return
+                    reproxy( $doc, $local, 'Inline',
+                        index => $index,
+                        type => $type,
+                );
+            }
+        };
+    } else {
+    
+        # Output the search results
+        template 'index', {
+                results => ($results ? $results->{hits} : undef ),
+                params => {
+                    q    => $search_term,
+                    from => $from,
+                    size => $size,
+                },
+        };
     };
 };
 
@@ -190,6 +232,7 @@ get '/cache/:index/:type/:id' => sub {
         return template 'view_document', {
             result => $document,
             backlink => scalar( request->referer ),
+            # we should also save the page offset...
         }
     } else {
         status 404;
@@ -283,6 +326,96 @@ get '/inline/:index/:type/:id' => sub {
     
 };
 
+# This is likely a really bad design choice which I will regret later.
+# Most likely, manually encoding to JSON would be the saner approach
+# instead of globally setting a serializer for all routes.
+set 'serializer' => 'JSON';
+
+get '/suggest/:query.json' => sub {
+    my( $q ) = params->{query};
+    #warn "Completing '$q'";
+    
+    return [] unless $q and $q =~ /\S/;
+    
+    # Strip leading/trailing whitespace, Justin Case
+    $q =~ s!^\s+!!;
+    $q =~ s!\s+$!!;
+
+    # Reinitialize indices
+    # Some day, we could cache that/not refresh them all the time    
+    %indices = %{ search->indices->get({index => ['*']}) };
+
+    my @restrict_type;
+    my $type;
+    if( $type = params->{'type'} and $type =~ m!([a-z0-9+-]+)/[a-z0-9+-]+!i) {
+        #warn "Filtering for '$type'";
+        @restrict_type = (filter => { term => { mime_type => $type }});
+    };
+        
+    # This should be centralized
+    # This is "did you mean X"
+    #my @fields = ('title','content', 'author');
+    
+    # Query all suggestive fields at once:
+    #my %suggest_query = map {;
+    #    "my_suggestions_$_" => {
+    #        phrase  => {
+    #            field => "$_.autocomplete",
+    #            #field => "$_",
+    #            #text => $q,
+    #        }
+    #    }
+    #} @fields;
+    
+    my @fields = ('title_suggest');
+    
+    # Query all suggestive fields at once:
+    my %suggest_query = map {;
+        "my_completions_$_" => {
+            phrase  => {
+                field => "title_suggest",
+                #field => "$_",
+                #text => $q,
+            }
+        }
+    } @fields;
+
+    #warn Dumper \%suggest_query;
+    
+    # Move this to an async query, later
+    my $index = config->{elastic_search}->{index};
+    my $results = search->suggest(
+        index => [ grep { /^\Q$index\E/ } sort keys %indices ],
+        body    => {
+            foo => {
+                text  => $q,
+                completion => {
+                    field => 'title_suggest',
+                    "fuzzy" => 2, # edit distance of 2
+                }
+            }
+            #%suggest_query
+        }
+    );
+    
+    #warn Dumper $results;
+    
+    my %suggestions;
+    my @res = map {; +{
+                  tokens => [split //, $_->{text}],
+                  value => $_->{text},
+                  url   => $_->{payload}->{url},
+              } }
+              sort { $b->{score} <=> $a->{score} || $b cmp $a } # sort by score+asciibetically descending
+              map { $_->{options} ? @{ $_->{options} } : () } # unwrap again
+              map { @$_ } # unwrap
+              grep { ref $_ eq 'ARRAY' } values %$results
+              ;
+    
+    add_api_headers;
+    return \@res;
+};
+
 true;
 
 __END__
@@ -328,7 +461,9 @@ L<https://perlmonks.org/>.
 
 I've given a talk about this module at Perl conferences:
 
-L<German Perl Workshop 2016, German|http://corion.net/talks/dancer-searchapp/dancer-searchapp.html>
+L<German Perl Workshop 2016, German|http://corion.net/talks/dancer-searchapp/dancer-searchapp.de.html>
+
+L<German Perl Workshop 2016, English|http://corion.net/talks/dancer-searchapp/dancer-searchapp.en.html>
 
 =head1 BUG TRACKER
 

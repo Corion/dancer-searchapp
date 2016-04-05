@@ -20,6 +20,10 @@ image:
 
   docker run --env SEARCHAPP_ES_NODES=192.168.99.1:9200 -P dsa
 
+=head2 Java
+
+Elasticsearch requires Java JRE 8, so you'll need to have that available.
+
 =head2 Elasticsearch
 
 Download Elasticsearch from L<https://www.elastic.co/downloads/elasticsearch>

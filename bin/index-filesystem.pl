@@ -7,7 +7,6 @@ use Promises qw[collect deferred];
 use Getopt::Long;
 
 use MIME::Base64;
-use Text::CleanFragment 'clean_fragment';
 
 use Data::Dumper;
 use YAML 'LoadFile';
@@ -16,11 +15,13 @@ use Path::Class;
 use URI::file;
 use POSIX 'strftime';
 
+use Dancer::SearchApp::Defaults 'get_defaults';
 use Dancer::SearchApp::IndexSchema qw(create_mapping find_or_create_index %indices %analyzers );
-use Dancer::SearchApp::Utils qw(synchronous);
+use Dancer::SearchApp::Utils qw(await);
+use Dancer::SearchApp::Extractor;
 
-#use lib 'C:/Users/Corion/Projekte/Apache-Tika/lib';
 use CORION::Apache::Tika::Server;
+#use Apache::Tika::Server;
 
 use JSON::MaybeXS;
 my $true = JSON->true;
@@ -42,23 +43,34 @@ my $false = JSON->false;
 GetOptions(
     'force|f' => \my $force_rebuild,
     'config|c' => \my $config_file,
+    # How can we easily pass the options for below as command line parameters?!
 );
 $config_file ||= 'fs-import.yml';
 
-my $config = LoadFile($config_file)->{fs};
+my $file_config = LoadFile($config_file);
 
-my $index_name = 'dancer-searchapp';
+my $config = get_defaults(
+    env      => \%ENV,
+    config   => $file_config,
+    #defaults => \%
+    names => [
+        ['elastic_search/index' => 'elastic_search/index' => 'SEARCHAPP_ES_INDEX', 'dancer-searchapp'],
+        ['elastic_search/nodes' => 'elastic_search/nodes' => 'SEARCHAPP_ES_NODES', 'localhost:9200'],
+    ],
+);
+
+my $index_name = $config->{elastic_search}->{index};
 
 my $e = Search::Elasticsearch::Async->new(
     nodes => [
-        'localhost:9200',
-        #'search2:9200'
+        $config->{elastic_search}->{nodes},
     ],
     plugins => ['Langdetect'],
-    #trace_to => 'Stderr',
 );
 
-my $tika_glob = 'C:/Users/Corion/Projekte/Apache-Tika/jar/tika-server-*.jar';
+my $extractor = 'Dancer::SearchApp::Extractor';
+
+my $tika_glob = 'C:/Users/Corion/Projekte/Apache-Tika-Async/jar/tika-server-*.jar';
 my $tika_path = (sort { my $ad; $a =~ /server-1.(\d+)/ and $ad=$1;
                 my $bd; $b =~ /server-1.(\d+)/ and $bd=$1;
                 $bd <=> $ad
@@ -71,7 +83,7 @@ my $tika= CORION::Apache::Tika::Server->new(
 $tika->launch;
 
 my $ok = AnyEvent->condvar;
-my $info = synchronous $e->cat->plugins;
+my $info = await $e->cat->plugins;
 
 # Koennen wir ElasticSearch langdetect als Fallback nehmen?
 my $have_langdetect = $info =~ /langdetect/i;
@@ -96,58 +108,22 @@ use vars qw(%analyzers);
 if( $force_rebuild ) {
     print "Dropping indices\n";
     my @list;
-    synchronous $e->indices->get({index => ['*']})->then(sub{
+    await $e->indices->get({index => ['*']})->then(sub{
         @list = grep { /^\Q$index_name/ } sort keys %{ $_[0]};
     });
 
-    synchronous collect( map { my $n=$_; $e->indices->delete( index => $n )->then(sub{warn "$n dropped" }) } @list )->then(sub{
+    await collect( map { my $n=$_; $e->indices->delete( index => $n )->then(sub{warn "$n dropped" }) } @list )->then(sub{
         warn "Index cleanup complete";
         %indices = ();
     });
 };
 
 print "Reading ES indices\n";
-synchronous $e->indices->get({index => ['*']})->then(sub{
+await $e->indices->get({index => ['*']})->then(sub{
     %indices = %{ $_[0]};
 });
 
 warn "Index: $_\n" for grep { /^\Q$index_name/ } keys %indices;
-
-# Connect to cluster at search1:9200, sniff all nodes and round-robin between them:
-
-# Lame-ass config cascade
-# Read from %ENV, $config, hard defaults, with different names,
-# write to yet more different names
-# Should merge with other config cascade
-sub get_defaults {
-    my( %options ) = @_;
-    $options{ defaults } ||= {}; # premade defaults
-    
-    my @names = @{ $options{ names } };
-    if( ! exists $options{ env }) {
-        $options{ env } = \%ENV;
-    };
-    my $env = $options{ env };
-    my $config = $options{ config };
-    
-    for my $entry (@{ $options{ names }}) {
-        my ($result_name, $config_name, $env_name, $hard_default) = @$entry;
-        if( defined $env_name and exists $env->{ $env_name } ) {
-            #print "Using $env_name from environment\n";
-            $options{ defaults }->{ $result_name } //= $env->{ $env_name };
-        };
-        if( defined $config_name and exists $config->{ $config_name } ) {
-            #print "Using $config_name from config\n";
-            $options{ defaults }->{ $result_name } //= $config->{ $config_name };
-        };
-        if( ! exists $options{ defaults }->{$result_name} ) {
-            print "No $config_name from config, using hardcoded default\n";
-            print "Using $env_name from hard defaults ($hard_default)\n";
-            $options{ defaults }->{ $result_name } = $hard_default;
-        };
-    };
-    $options{ defaults };
-};
 
 sub in_exclude_list {
     my( $item, $list ) = @_;
@@ -162,9 +138,15 @@ sub fs_recurse {
     my @folders;
 
     for my $folderspec (@{$config->{directories}}) {
+        
+        #if( ! exists $folderspec->{exclude} ) {
+        #    # By default, exclude hidden files
+        #    $folderspec->{exclude} = [qr/^\./];
+        #};
         if( ! ref $folderspec ) {
             # plain name, use this folder
             push @folders, dir($folderspec)
+            
         } else {
             my $dir = dir($folderspec->{folder});
             push @folders, $dir;
@@ -191,13 +173,21 @@ sub get_entries_from_folder {
     my( $folder, @message_uids )= @_;
     # Add rate-limiting counter here, so we don't flood
     
-    return grep { !$_->is_dir } $folder->children();
+    my @directories = eval { $folder->children() };
+    if( $@ ) {
+        warn "Skipped $folder, no permissions\n";
+    };
+    
+    return grep { !$_->is_dir and ! /^\./ } @directories;
 };
+
 
 sub get_file_info {
     my( $file ) = @_;
     my %res;
-    $res{ url } = URI::file->new( $file )->as_string;
+    my $url = URI::file->new( $file )->as_string;
+    $res{ folder } = "" . $file->dir;
+    $res{ folder } =~ s![\\/ ]! !g;
     
     eval {
         $info = $tika->get_all( $file );
@@ -211,37 +201,42 @@ sub get_file_info {
     } else {
     
         my $meta = $info->meta;
-        
         $res{ mime_type } = $meta->{"Content-Type"};
         
-        if( $res{ mime_type } =~ m!^audio/mpeg$! ) {
-            require MP3::Tag;
-            my $mp3 = MP3::Tag->new($file);
-            my ($title, $track, $artist, $album, $comment, $year, $genre) = $mp3->autoinfo();
-            $res{ title } = $title || $file->basename;
-            $res{ author } = $artist;
-            $res{ language } = 'en'; # ...
-            $res{ content } = join "-", $artist, $album, $track, $comment, $genre, $file->basename, 'mp3';
-            # We should also calculate the duration here, and some more information
-            # to generate an "HTML" page for the file
+        my @info = await $extractor->examine(
+              url => $url,
+              info => $info,
+              #content => \$content, # if we have it
+              filename => $file, # if we have it
+              folder => $res{ folder }, # if we have it
+        );
+        
+        # This should be general dispatching
+        # so the IMAP import can benefit from that
+        if( @info ) {
+            # generate an "HTML" page for the file
+            # These special pages should be named "cards"
+            %res = %{$info[ 0 ]}; # just take the first item ...
             
         } else {
             
             # Just use what Tika found
-
+            
             use HTML::Restricted;            
             my $p = HTML::Restricted->new();
             my $r = $p->filter( $info->content );
 
-            $res{ title } = $meta->{"meta:title"} || $file->basename;
+            $res{ title } = $meta->{"dc:title"} || $meta->{"title"} || $file->basename;
             $res{ author } = $meta->{"meta:author"}; # as HTML
             $res{ language } = $meta->{"meta:language"};
             $res{ content } = $r->as_HTML; # as HTML
+            
         }
     }
-    
+
     my $ctime = (stat $file)[10];
     $res{ creation_date } = strftime('%Y-%m-%d %H:%M:%S', localtime($ctime));
+    $res{ url } ||= "$file";
     \%res
 }
 
@@ -273,9 +268,16 @@ sub url_stored {
 }
 
 if( @ARGV) {
-    $config->{directories} = [@ARGV];
+    $config->{fs}->{directories} = [@ARGV];
 };
-my @folders = fs_recurse(undef, $config);
+
+if( ! @ARGV ) {
+    # If we don't know better, scan the (complete) profile
+    my $userhome = $ENV{USERPROFILE} || $ENV{HOME};
+    $config->{fs}->{directories} = [{ folder => $userhome, recurse => 1 }];
+}
+
+my @folders = fs_recurse(undef, $config->{fs});
 for my $folder (@folders) {
     my @entries;
     print "Reading $folder\n";
@@ -289,11 +291,18 @@ for my $folder (@folders) {
     my $done = AnyEvent->condvar;
 
     # Importieren
-    print sprintf "Importing %d messages\n", 0+@entries;
+    print sprintf "Importing %d files\n", 0+@entries;
     collect(
         map {
             my $msg = $_;
             my $body = $msg->{content};
+            
+            # Stringify some fields that are prone to be objects:
+            for(qw(file url)) {
+                if( $msg->{$_} ) {
+                    $msg->{ $_} = "$msg->{$_}";
+                };
+            };
             
             my $lang = detect_language($body, $msg);
             
@@ -305,6 +314,24 @@ for my $folder (@folders) {
             ->then( sub {
                 my( $full_name ) = @_;
                 #warn $msg->{mime_type};
+                
+                # munge the title so we get magic completion for document titles:
+                # This should be mostly done in an Elasticsearch filter+analyzer combo
+                # Except for bands/song titles, which we want to manually munge
+                my @parts = map {lc $_}
+                            ((split /\s+/, $msg->{title}),
+                            (split m![\\/]!, $msg->{url}));
+                $msg->{title_suggest} = {
+                    input => \@parts,
+                    output => $msg->{title},
+                    
+                    # Maybe some payload to directly link to the document. Later
+                    payload => {
+                            url => $msg->{url}
+                            # , $msg->{mime_type}
+                        },
+                };
+                
                 # https://www.elastic.co/guide/en/elasticsearch/guide/current/one-lang-docs.html
                 #warn "Storing document into $full_name";
                 $e->index({
@@ -313,9 +340,9 @@ for my $folder (@folders) {
                         id      => $msg->{url}, # we want to overwrite
                         # index bcc, cc, to, from
                         body    => $msg # "body" for non-bulk, "source" for bulk ...
-                        #source    => $msg
                  });
                })->then(sub{
+                   # Also add the document to the potential keywords for suggestion
                    #warn "Done."
                }, sub {warn $_ for @_ });
        } @entries

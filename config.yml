@@ -6,8 +6,8 @@
 appname: "Dancer::SearchApp"
 
 # The default layout to use for your application (located in
-# views/layouts/main.tt)
-layout: "main"
+# views/layouts/bootstrap3.tt)
+layout: "bootstrap3"
 
 # when the charset is set to UTF-8 Dancer will handle for you
 # all the magic of encoding and decoding. You should not care
@@ -26,6 +26,14 @@ engines:
      start_tag: '<%'
      end_tag:   '%>'
      debug: 1
+
+plack_middlewares:
+    -
+        - Pod
+        - path
+        - "^/pod/"
+        - root
+        - "./pod/"
 
 # For session support enable the following line and see Dancer::Session
 # session: "YAML"

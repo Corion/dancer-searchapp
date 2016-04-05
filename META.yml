@@ -1,0 +1,38 @@
+---
+abstract: 'A simple local search engine'
+author:
+  - 'Max Maischein <corion@cpan.org>'
+build_requires:
+  ExtUtils::MakeMaker: '0'
+configure_requires:
+  ExtUtils::MakeMaker: '0'
+dynamic_config: 1
+generated_by: 'ExtUtils::MakeMaker version 6.98, CPAN::Meta::Converter version 2.142060'
+license: perl
+meta-spec:
+  url: http://module-build.sourceforge.net/META-spec-v1.4.html
+  version: '1.4'
+name: Dancer-SearchApp
+no_index:
+  directory:
+    - t
+    - inc
+requires:
+  Dancer: '1.3132'
+  Exporter: '5'
+  Image::ExifTool: '0'
+  MP3::Tag: '0'
+  Moo: '0'
+  Path::Class: '0'
+  Promises: '0'
+  Search::Elasticsearch: '2'
+  Search::Elasticsearch::Async: '2'
+  Template: '0'
+  Test::More: '0'
+  URI::Escape: '0'
+  URI::file: '0'
+  YAML: '0'
+  perl: '5.010'
+resources:
+  repository: https://github.com/Corion/dancer-searchapp
+version: '0.04'

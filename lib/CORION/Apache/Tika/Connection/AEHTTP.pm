@@ -6,24 +6,23 @@ use Moo;
 with 'CORION::Apache::Tika::Connection';
 
 use vars '$VERSION';
-$VERSION = '0.03';
+$VERSION = '0.05';
 
 sub request {
-    my( $self, $method, $url, $content, @content ) = @_;
+    my( $self, $method, $url, $content, @headers ) = @_;
     # Should initialize
     
     $method = uc $method;
     
     my $content_size = length $content;
     
-    my %headers= $content
-               ? (
+    # 'text/plain' for the language
+    my %headers= (
                   "Content-Length" => $content_size,
                   "Accept" => 'application/json,text/plain',
-                  # "Content-Type" => 'application/pdf',
-                 )
-               : ();
-    
+                  @headers
+                 );
+
     my $p = deferred;
     http_request(
         $method => $url,

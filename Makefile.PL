@@ -17,7 +17,7 @@ regen_README('lib/Dancer/SearchApp.pm');
 my @tests = map { glob $_ } 't/*.t', 't/*/*.t';
 
 WriteMakefile1(
-    MIN_PERL_VERSION => '5.010', # This is just a wild guess
+    #MIN_PERL_VERSION => '5.018', # because I use signatures
     NAME                => 'Dancer::SearchApp',
     AUTHOR              => q{Max Maischein <corion@cpan.org>},
     VERSION_FROM        => 'lib/Dancer/SearchApp.pm',
@@ -41,6 +41,8 @@ WriteMakefile1(
         'Test::More' => 0,
         'YAML'       => 0,
         'Dancer'     => 1.3132,
+        'JSON'       => 0, # we use the "JSON" serializer
+        'HTML::Entities' => 0,
         'Template'   => 0,
         'Search::Elasticsearch' => 2,
         'Search::Elasticsearch::Async' => 2,
@@ -50,10 +52,28 @@ WriteMakefile1(
         'URI::file' => 0,
         'URI::Escape' => 0,
 
+        # For configuration management
+        'Data::Diver' => 0,
+
+        # For rendering our development Pod
+        'Plack::Middleware::Pod' => 0,
+
+        # For the IMAP/mail support, until we spin that off
+        'Mail::IMAPClient' => 0,
+        'MIME::WordDecoder' => 0,
+        'MIME::Base64' => 0,
+        'MIME::QuotedPrint' => 0,
+        'Scalar::Util' => 0,
+        'Encode' => 0,
+        'Text::Markdown' => 0,
+        'HTTP::Date' => 0,
+        'Time::Piece' => 0,
+        
         # CORION::Apache::Tika included until we spin it off
         
         # For media files
         'MP3::Tag' => 0,
+        'Image::ExifTool' => 0,
         },
     dist                => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
     clean               => { FILES => 'Dancer-SearchApp-*' },

@@ -15,7 +15,7 @@ Dancer::SearchApp::IndexSchema - schema definition for the Elasticsearch index
 =cut
 
 use vars qw(@EXPORT_OK $VERSION @types);
-$VERSION = '0.03';
+$VERSION = '0.05';
 @EXPORT_OK = qw(create_mapping multilang_text find_or_create_index %indices %analyzers );
 
 @types = (qw(file mail http));
@@ -25,18 +25,25 @@ sub multilang_text($$) {
     my($name, $analyzer)= @_;
     return { 
           "type" => "multi_field",
+          #"type" => "string",
+
+          # Also for the suggestion box
           "fields" =>  {
-               $name => {
+              $name => {
                    "type" => "string",
                    "analyzer" => $analyzer,
                    "index" => "analyzed",
-                     "store" => $true,
-               },
-               #"${name}_raw" => {
-               #     "type" => "string",
-               #     "index" => "not_analyzed",
-               #      "store" => $true,
-               #},
+                    "store" => $true,
+              },
+              # This is misnamed - it's more the autocorrect filter
+              # usable for "did you mean XY" responses
+              "autocomplete" => {
+                  "analyzer" => "analyzer_shingle",
+                  "search_analyzer" => "analyzer_shingle",
+                  "index_analyzer" => "analyzer_shingle",
+                  "type" => "string",
+                   "store" => $true,
+              },
           }
     };
 };
@@ -67,8 +74,25 @@ sub create_mapping {
         "properties" => {
             "url"        => { type => "string" }, # file://-URL
             "title"      => multilang_text('title',$analyzer),
+
+            # Automatic (title) completion to their documents
+            # https://www.elastic.co/blog/you-complete-me
+            "title_suggest" => {
+                  "type" => "completion",
+                  "payloads" => $true,
+                  # Also add synonym filter
+                  # Also add lowercase anaylzer
+            },
+            
             "author"     => multilang_text('author', $analyzer),
             "content"    => multilang_text('content',$analyzer),
+            "folder"     => {
+                  "type" => "string",
+                  "analyzer" => $analyzer,
+                  # Some day I'll know how to have a separate tokenizer per-field
+                  # "tokenizer" => "path_hierarchy",
+            },
+            # This could also be considered a path_hierarchy
             'mime_type'  => { type => "string", index => 'not_analyzed' }, # text/html etc.
             "creation_date"    => {
               "type"  =>  "date",
@@ -124,11 +148,38 @@ sub find_or_create_index {
                 $e->indices->create(index=>$full_name,
                     body => {
                     settings => {
+                        analysis => {
+                            analyzer => {
+                                "analyzer_shingle" => {
+                                   "tokenizer" => "standard",
+                                   "filter" => ["standard", "lowercase", "filter_stop", "filter_underscores", "filter_shingle"],
+                                },
+                            },
+                            "filter" => {
+                                "filter_underscores" => {
+                                   "type" => "stop",
+                                   "stopwords" => ['_'],
+                                },
+                                "filter_stop" => {
+                                   "type" => "stop",
+                                   # We'll need another filter to filter out the underscores...
+                                },
+                                "filter_shingle" => {
+                                   "type" =>"shingle",
+                                   "max_shingle_size" => 5,
+                                   "min_shingle_size" => 2,
+                                   "output_unigrams" => $true,
+                                },
+                                "ngram" => {
+                                  "type" => "ngram",
+                                  "min_gram" => 2,
+                                  "max_gram" => 15, # long enough even for German
+                                },
+                            },
+                        },
+                        
                         mapper => { dynamic => $false }, # this is "use strict;" for ES
                         "number_of_replicas" => 0,
-                        #"analysis" => {
-                        #    "analyzer" => $analyzers{ $lang }
-                        #},
                     },
                     "mappings" => {
                         # Hier muessen/sollten wir wir die einzelnen Typen definieren

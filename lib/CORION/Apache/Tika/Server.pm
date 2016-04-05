@@ -29,7 +29,7 @@ use Promises;
 =cut
 
 use vars '$VERSION';
-$VERSION = '0.03';
+$VERSION = '0.05';
 
 extends 'CORION::Apache::Tika';
 
@@ -154,10 +154,11 @@ sub fetch {
         $method= 'put';
         ;
     };
-    # 'text/plain' for the language
+    
+    my $headers = $options{ headers } || {};
     
     my ($code,$res) = synchronous
-        $self->ua->request( $method, $url, $content );
+        $self->ua->request( $method, $url, $content, %$headers );
     my $info;
     if(    'all' eq $options{ type }
         or 'text' eq $options{ type }
@@ -178,7 +179,7 @@ sub fetch {
                 $c =~ s!\A\s*<p>(.*)\s*</p>\s*\z!$1!s;
             };
         } else {
-            warn "Couldn't find body in response";
+            warn "Couldn't find HTML body in response";
         };
         
         $info= CORION::Apache::Tika::DocInfo->new({
@@ -188,7 +189,7 @@ sub fetch {
         
         if( ! defined $info->{meta}->{"meta:language"} ) {
             # Yay. Two requests.
-            my $lang_meta = $self->fetch(%options, type => 'language');
+            my $lang_meta = $self->fetch(%options, type => 'language', 'Content-Type' => $item->{'Content-Type'});
             $info->{meta}->{"meta:language"} = $lang_meta->meta->{"info"};
         };
         

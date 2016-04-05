@@ -7,6 +7,7 @@ use Getopt::Long;
 
 GetOptions(
     'force|f' => \my $force_rebuild,
+    'config-file|c' => \my $config_file,
 );
 
 # Connect to localhost:9200:
@@ -72,7 +73,7 @@ use Data::Dumper;
     );
 warn Dumper $results;
 
-    my $results = $e->cluster->health(
+    $results = $e->cluster->health(
         index => $index_name,
     );
 warn Dumper $results;

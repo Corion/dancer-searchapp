@@ -5,7 +5,7 @@ use Moo;
 use HTML::TreeBuilder 5 '-weak'; # we want weak references
 
 use vars '$VERSION';
-$VERSION = '0.03';
+$VERSION = '0.05';
 
 =head1 NAME
 
@@ -20,7 +20,8 @@ and decide on using one.
 
 L<HTML::StripScripts> seems a likely alternative to this module.
 
-Currently, attributes are not cleaned up
+Currently, attributes are not cleaned up. Also, HTML5 tags are simply
+stripped as this module doesn't use L<HTML::HTML5::Parser>.
 
 Don't rely on this module.
 

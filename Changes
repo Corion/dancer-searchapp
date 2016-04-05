@@ -1,3 +1,14 @@
+0.05 20160326
+    . File system scanner now recursively imports $HOME by default
+    . Use Boostrap v3 for the web UI
+    . IMAP support finally shipping
+
+0.04 20160315
+    . First stab at a rough (rough) HTTP URL importer
+    . Allow image metadata to be indexed
+      This still longs for a thumbnail to be generated and stored
+    . This is all still very experimental
+
 0.03 20160309
     . Fix leftover references to Apache::Tika -> CORION::Apache::Tika
 

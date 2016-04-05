@@ -7,7 +7,7 @@ use Moo;
 with 'CORION::Apache::Tika::Connection';
 
 use vars '$VERSION';
-$VERSION = '0.03';
+$VERSION = '0.05';
 
 has ua => (
     is => 'ro',
@@ -16,16 +16,17 @@ has ua => (
 );
 
 sub request {
-    my( $self, $method, $url, $content ) = @_;
+    my( $self, $method, $url, $content, @headers ) = @_;
     # Should initialize
     
     my $content_size = length $content;
     
-    my %headers= $content
-               ? ('Content' => $content,
-                  "Content-Length" => $content_size,
-                  )
-               : ();
+    # 'text/plain' for the language
+    unshift @headers, "Content-Length" => $content_size;
+    my %headers= (($content
+               ? ('Content' => $content)
+               : ()),
+               @headers);
     my $res = $self->ua->$method( $url, %headers);
     
     my $p = deferred;

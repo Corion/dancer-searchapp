@@ -3,22 +3,23 @@ use strict;
 use AnyEvent;
 use Search::Elasticsearch::Async;
 use Promises qw[collect deferred];
+#use Promises::RateLimiter;
 
-use Mail::IMAPClient;
+use Dancer::SearchApp::Defaults 'get_defaults';
 use Getopt::Long;
 use Mail::IMAPClient;
 
-use lib '../App-ImapBlog/lib';
-use App::ImapBlog::Entry;
+# Consider using Email::Folder::*
+# so that we can read things other than IMAP
+# Also move away from App::ImapBlog :-)
+use Mail::Email::IMAP;
 use MIME::Base64;
-use Mail::Clean 'clean_subject';
-use Text::CleanFragment 'clean_fragment';
 
 use Data::Dumper;
 use YAML 'LoadFile';
 
 use Dancer::SearchApp::IndexSchema qw(create_mapping find_or_create_index %indices %analyzers );
-use Dancer::SearchApp::Utils qw(synchronous);
+use Dancer::SearchApp::Utils qw(await);
 
 use JSON::MaybeXS;
 my $true = JSON->true;
@@ -26,24 +27,30 @@ my $false = JSON->false;
 
 GetOptions(
     'force|f' => \my $force_rebuild,
-    'config|c' => \my $config_file,
+    'config|c:s' => \my $config_file,
 );
 $config_file ||= 'imap-import.yml';
 
-# Connect to localhost:9200:
-
-#my $e = Search::Elasticsearch::Async->new();
-
-# Round-robin between two nodes:
-
-my $config = LoadFile($config_file)->{imap};
-
-my $index_name = 'elasticsearch';
+my $config = get_defaults(
+    env      => \%ENV,
+    config   => LoadFile($config_file),
+    names => [
+        ['elastic_search/index' => 'elastic_search/index' => 'SEARCHAPP_ES_INDEX', 'dancer-searchapp'],
+        ['elastic_search/nodes' => 'elastic_search/nodes' => 'SEARCHAPP_ES_NODES', 'localhost:9200'],
+        ['imap/server'          => 'imap/server'          => IMAP_SERVER => 'localhost' ],
+        ['imap/port'            => 'imap/port'            => IMAP_PORT => '993' ],
+        ['imap/username'        => 'imap/username'        => IMAP_USER  => ],
+        ['imap/password'        => 'imap/password'        => IMAP_PASSWORD => ],
+        ['imap/debug'           => 'imap/debug'           => IMAP_DEBUG => ],
+        ['imap/folders'         => 'imap/folders'         => undef => []],
+    ],
+);
+my $index_name = $config->{elastic_search}->{index};
+my $node = $config->{elastic_search}->{nodes};
 
 my $e = Search::Elasticsearch::Async->new(
     nodes => [
-        'localhost:9200',
-        #'search2:9200'
+        $node
     ],
     #plugins => ['Langdetect'],
 );
@@ -61,18 +68,18 @@ my $e = Search::Elasticsearch::Async->new(
 if( $force_rebuild ) {
     print "Dropping indices\n";
     my @list;
-    synchronous $e->indices->get({index => ['*']})->then(sub{
+    await $e->indices->get({index => ['*']})->then(sub{
         @list = grep { /^\Q$index_name/ } sort keys %{ $_[0]};
     });
 
-    synchronous collect( map { my $n=$_; $e->indices->delete( index => $n )->then(sub{warn "$n dropped" }) } @list )->then(sub{
+    await collect( map { my $n=$_; $e->indices->delete( index => $n )->then(sub{warn "$n dropped" }) } @list )->then(sub{
         warn "Index cleanup complete";
         %indices = ();
     });
 };
 
 print "Reading ES indices\n";
-synchronous $e->indices->get({index => ['*']})->then(sub{
+await $e->indices->get({index => ['*']})->then(sub{
     %indices = %{ $_[0]};
 });
 
@@ -82,13 +89,7 @@ warn "Index: $_\n" for grep { /^\Q$index_name/ } keys %indices;
 # Erstellt einen Mail-Index mit der passenden Sprache
 # https://www.elastic.co/guide/en/elasticsearch/reference/current/analysis-lang-analyzer.html
 
-use vars qw(%analyzers %indices);
-
-%analyzers = (
-    'de' => 'german',
-    'en' => 'english',
-    'ro' => 'english', # I don't speak "romanian"
-);
+use vars qw(%indices);
 
 print "Reading ES indices\n";
 my $indices_done = AnyEvent->condvar;
@@ -102,54 +103,17 @@ warn "Index: $_\n" for keys %indices;
 
 # Connect to cluster at search1:9200, sniff all nodes and round-robin between them:
 
-# Lame-ass config cascade
-# Read from %ENV, $config, hard defaults, with different names,
-# write to yet more different names
-# Should merge with other config cascade
-sub get_defaults {
-    my( %options ) = @_;
-    $options{ defaults } ||= {}; # premade defaults
-    
-    my @names = @{ $options{ names } };
-    if( ! exists $options{ env }) {
-        $options{ env } = \%ENV;
-    };
-    my $env = $options{ env };
-    my $config = $options{ config };
-    
-    for my $entry (@{ $options{ names }}) {
-        my ($result_name, $config_name, $env_name, $hard_default) = @$entry;
-        if( defined $env_name and exists $env->{ $env_name } ) {
-            #print "Using $env_name from environment\n";
-            $options{ defaults }->{ $result_name } //= $env->{ $env_name };
-        };
-        if( defined $config_name and exists $config->{ $config_name } ) {
-            #print "Using $config_name from config\n";
-            $options{ defaults }->{ $result_name } //= $config->{ $config_name };
-        };
-        if( ! exists $options{ defaults }->{$result_name} ) {
-            print "No $config_name from config, using hardcoded default\n";
-            print "Using $env_name from hard defaults ($hard_default)\n";
-            $options{ defaults }->{ $result_name } = $hard_default;
-        };
-    };
-    $options{ defaults };
-};
-
-use vars qw($imap $config);
+use vars qw($imap);
 sub imap() {
     return $imap if $imap and $imap->IsConnected;
     
-    my %imap_config = %{ get_defaults(
-        config => $config,
-        names => [
-            [ Server   => 'server'   => IMAP_SERVER => 'localhost' ],
-            [ Port     => 'port'     => IMAP_PORT => '993' ],
-            [ User     => 'username' => IMAP_USER  => ],
-            [ Password => 'password' => IMAP_PASSWORD => ],
-            [ Debug    => 'debug'    => IMAP_DEBUG => ],
-        ],
-    ) };
+    my %imap_config = (
+        Server => $config->{imap}->{server},
+        Port => $config->{imap}->{port},
+        User => $config->{imap}->{username},
+        Password => $config->{imap}->{password},
+        Debug => $config->{imap}->{debug},
+    );
     
     use IO::Socket::SSL;
     #$IO::Socket::SSL::DEBUG = 3; # all
@@ -192,7 +156,7 @@ sub in_exclude_list {
 # This should go into crawler::imap
 sub imap_recurse {
     my( $imap, $config ) = @_;
-
+    
     my @folders;
     for my $folderspec (@{$config->{folders}}) {
         if( ! ref $folderspec ) {
@@ -256,14 +220,16 @@ sub get_messages_from_folder {
 #use Search::Elasticsearch::Plugin::Langdetect;
 #my $ld = Search::Elasticsearch::Plugin::Langdetect->new( elasticsearch => $e );
 
-use App::ImapBlog::Entry;
-my @folders = imap_recurse(imap, $config);
+my @folders = imap_recurse(imap, $config->{imap});
 #my $importer = $e->bulk_helper();
 for my $folder (@folders) {
     my @messages;
     print "Reading $folder\n";
     push @messages, map {
-        App::ImapBlog::Entry->from_imap_client(imap(), $_);
+        # This doesn't handle attachments yet :-/
+        Mail::Email::IMAP->from_imap_client(imap(), $_,
+            folder => $folder
+        );
     } get_messages_from_folder( $folder );
 
     my $done = AnyEvent->condvar;
@@ -286,6 +252,18 @@ for my $folder (@folders) {
                 find_or_create_index($e, $index_name,$lang, 'mail')
             ->then( sub {
                 my( $full_name ) = @_;
+                
+                # munge the title so we get magic completion for document titles:
+                # This should be mostly done in an Elasticsearch filter+analyzer combo
+                # Except for bands/song titles, which we want to manually munge
+                my @parts = map {lc $_} (split /\s+/, $msg->subject);
+                $msg->{title_suggest} = {
+                    input => \@parts,
+                    output => $msg->subject,
+                    # Maybe some payload to directly link to the document. Later
+                };
+
+                
                 # https://www.elastic.co/guide/en/elasticsearch/guide/current/one-lang-docs.html
                 #warn "Storing document";
                 $e->index({
@@ -297,11 +275,13 @@ for my $folder (@folders) {
                         # content-type, ...
                         body    => { # "body" for non-bulk, "source" for bulk ...
                         #source    => {
-                            messageid => $msg->messageid,
-                            subject => $msg->subject,
-                            from    => $msg->from,
-                            to      => [ $msg->recipients ],
-                            content => $body,
+                            url       => $msg->messageid,
+                            title     => $msg->subject,
+                            title_suggest => $msg->{title_suggest}, # ugh
+                            folder    => $msg->{folder},
+                            #from    => $msg->from,
+                            #to      => [ $msg->recipients ],
+                            content => "From: " . join( ",", $msg->from ) .  "<br/>\n To: " . join( ",", $msg->recipients ) . "<br/>\n" . $body,
                             language => $lang,
                             date    => $msg->date->strftime('%Y-%m-%d %H:%M:%S'),
                         }
