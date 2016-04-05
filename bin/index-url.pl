@@ -1,9 +1,11 @@
 #!perl -w
 use strict;
 use AnyEvent;
+use AnyEvent::HTTP;
 use Search::Elasticsearch::Async;
 use Promises backend => ['AE'], qw[collect deferred];
 #use Promises::RateLimiter;
+use Promises::RateLimiter;
 
 use Getopt::Long;
 
@@ -264,7 +266,6 @@ sub detect_language {
     $res
 }
 
-use AnyEvent::HTTP;
 sub http_fetch {
     my ($uri) = @_;
     my $d = deferred;
@@ -304,26 +305,40 @@ if( $url_file ) {
     @url_list = @ARGV;
 }
 
-my %active;
-my $limit = 2;
-my %allowed_hosts;
+# Simply restrict to the one host:
+sub should_follow {
+    my( $url, $new ) = @_;
+    URI->new( $new )->host eq URI->new( $url )->host
+}
 
-while( @url_list or %active) {
+my $concurrent_http_requests = Promises::RateLimiter->new(
+    maximum => 4,
+    rate => 2, # 2/s
+);
+
+while( @url_list) {
     # How do we prevent more than 20 promises in flight?!
-    my $in_flight = () = keys %active;
-    if( $in_flight < $limit and @url_list ) {
+    if( @url_list ) {
         my $url = dequeue_url(\@url_list);
-        $active{ $url } = 1;
 
-        my $content = http_fetch($url)->then(sub {
+        my $p = deferred;
+        $p->resolve($url);
+        $p->promise->limit( $concurrent_http_requests )
+          ->then(sub {
+            my( $url ) = @_;
+            http_fetch($url)
+          })->then(sub {
             my( $content ) = @_;
             my $info = get_document_info($url,$content);
             
             # Extract and enqueue links if wanted
             # ...
             if( my $more = delete $info->{references}) {
+            
+                my @follow = grep {should_follow( $url, $_)} @{ $more };
+            
                 # We should check whether we are in the list of allowed hosts
-                enqueue_url(\@url_list, @{ $more });
+                enqueue_url(\@url_list, @follow );
             };
             
             return $info
@@ -357,16 +372,8 @@ while( @url_list or %active) {
             print "$url done\n";
         })->catch(sub {
             print "$url: Error: @_"; 
-        })->finally(sub{
-            delete $active{$url};
         });
         #$importer->flush;
-    } else {
-        print "Limit of $in_flight simultaneous URLs reached, waiting.\n";
-        # Do nothing
-        my $continue = AnyEvent->condvar;
-        my $w = AnyEvent->timer(after => 1, cb => $continue);
-        $continue->recv;
     };
 };
 #$importer->flush;
