@@ -199,9 +199,10 @@ an optional walk-through through the search page and results page.
 
 Submit HTML and an URL into the index
 
-    submit-url --url '' --html ''
+    submit-url --url 'https://example.com' --html '<html><body>Hello World</body></html>'
 
-    submit-url --file '' --html ''
+    # Remind ourselves when we search for "user list" where it lives:
+    submit-url --file '/etc/passwd' --html '<html><pre>machine user list password</pre></html>'
 
     submit-url --json '{ url: "", "content" : "", ... }'
 
