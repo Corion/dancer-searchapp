@@ -61,7 +61,7 @@ specification:
             'mime_type'  => { type => "string" }, # text/html etc.
             "creation_date"    => {
               "type"  =>  "date",
-              "format" => "yyyy-MM-dd kk:mm:ss", # yay for Joda, yet-another-timeparser-format
+              "format" => "yyyy-MM-dd HH:mm:ss",
             },
         },
 
@@ -96,7 +96,7 @@ sub create_mapping {
             'mime_type'  => { type => "string", index => 'not_analyzed' }, # text/html etc.
             "creation_date"    => {
               "type"  =>  "date",
-              "format" => "yyyy-MM-dd kk:mm:ss", # yay for Joda, yet-another-timeparser-format
+              "format" => "yyyy-MM-dd HH:mm:ss",
             },
         },
     };
