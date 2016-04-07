@@ -20,8 +20,8 @@ use Dancer::SearchApp::IndexSchema qw(create_mapping find_or_create_index %indic
 use Dancer::SearchApp::Utils qw(await);
 use Dancer::SearchApp::Extractor;
 
-use CORION::Apache::Tika::Server;
-#use Apache::Tika::Server;
+#use CORION::Apache::Tika::Server;
+use Apache::Tika::Server;
 
 use JSON::MaybeXS;
 my $true = JSON->true;
@@ -36,7 +36,7 @@ my $false = JSON->false;
   index-filesystem.pl -c ~/myconfig.yml
 
   # Drop and recreate index:
-  index-filesystem.pl -f ./fs-import.yml
+  index-filesystem.pl -f -c ./fs-import.yml
 
 =cut
 
@@ -77,7 +77,7 @@ my $tika_path = (sort { my $ad; $a =~ /server-1.(\d+)/ and $ad=$1;
               } glob $tika_glob)[0];
 die "Tika not found in '$tika_glob'" unless -f $tika_path; 
 #warn "Using '$tika_path'";
-my $tika= CORION::Apache::Tika::Server->new(
+my $tika= Apache::Tika::Server->new(
     jarfile => $tika_path,
 );
 $tika->launch;
