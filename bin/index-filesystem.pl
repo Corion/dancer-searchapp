@@ -42,7 +42,7 @@ my $false = JSON->false;
 
 GetOptions(
     'force|f' => \my $force_rebuild,
-    'config|c' => \my $config_file,
+    'config|c:s' => \my $config_file,
     # How can we easily pass the options for below as command line parameters?!
 );
 $config_file ||= 'fs-import.yml';
