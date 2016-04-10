@@ -231,6 +231,8 @@ sub get_file_info {
             $res{ language } = $meta->{"meta:language"};
             $res{ content } = $r->as_HTML; # as HTML
             
+            $r->delete; # just to be safe
+            
         }
     }
 
