@@ -2,6 +2,7 @@
 use strict;
 use AnyEvent;
 use Search::Elasticsearch::Async;
+use Search::Elasticsearch::Async::Bulk;
 use Promises qw[collect deferred];
 
 use Getopt::Long;
@@ -281,79 +282,89 @@ if( ! @ARGV ) {
 
 my @folders = fs_recurse(undef, $config->{fs});
 for my $folder (@folders) {
-    my @entries;
-    print "Reading $folder\n";
-    push @entries, map {
-        # analyze file
-        # recurse into file parts for (ZIP) archives?!
-        # SHA1
-        get_file_info($_)
-    } get_entries_from_folder( $folder );
 
-    my $done = AnyEvent->condvar;
+    print "Reading $folder\n";
+    # We need to make this promises-based/asynchronous too so
+    # that we don't accumulate a lot of data client-side
+    my @entries = get_entries_from_folder( $folder );
+
+    my $bulk = $e->bulk_helper(
+        max_count => 10,
+        on_error => sub {
+            warn "ES Error: $_" for @_   
+        }
+    );
 
     # Importieren
     print sprintf "Importing %d files\n", 0+@entries;
-    collect(
-        map {
-            my $msg = $_;
-            my $body = $msg->{content};
-            
-            # Stringify some fields that are prone to be objects:
-            for(qw(file url)) {
-                if( $msg->{$_} ) {
-                    $msg->{ $_} = "$msg->{$_}";
-                };
-            };
-            
-            my $lang = detect_language($body, $msg);
-            
-            $lang->then(sub{
-                my $found_lang = $_[0]; #'en';
-                #warn "Have language '$found_lang'";
-                return find_or_create_index($e, $index_name,$found_lang, 'file')
-            })
-            ->then( sub {
-                my( $full_name ) = @_;
-                #warn $msg->{mime_type};
-                
-                # munge the title so we get magic completion for document titles:
-                # This should be mostly done in an Elasticsearch filter+analyzer combo
-                # Except for bands/song titles, which we want to manually munge
-                my @parts = map {lc $_}
-                            ((split /\s+/, $msg->{title}),
-                            (split m![\\/]!, $msg->{url}));
-                $msg->{title_suggest} = {
-                    input => \@parts,
-                    output => $msg->{title},
-                    
-                    # Maybe some payload to directly link to the document. Later
-                    payload => {
-                            url => $msg->{url}
-                            # , $msg->{mime_type}
-                        },
-                };
-                
-                # https://www.elastic.co/guide/en/elasticsearch/guide/current/one-lang-docs.html
-                #warn "Storing document into $full_name";
-                $e->index({
-                        index   => $full_name,
-                        type    => 'file', # or 'attachment' ?!
-                        id      => $msg->{url}, # we want to overwrite
-                        # index bcc, cc, to, from
-                        body    => $msg # "body" for non-bulk, "source" for bulk ...
-                 });
-               })->then(sub{
-                   # Also add the document to the potential keywords for suggestion
-                   #warn "Done."
-               }, sub {warn $_ for @_ });
-       } @entries
-    )->then(sub {
-        print "$folder done\n";
-        $done->send;
-    });
     
-    $done->recv;
-    #$importer->flush;
+    # Process in a batch size of 10, to debug memory consumption
+    while( my @batch = splice @entries, 0, 100 ) {
+
+        await collect(
+            map {
+                # One day, this will be a Promise too
+                my $msg = get_file_info($_);
+                
+                my $body = $msg->{content};
+                
+                # Stringify some fields that are prone to be objects:
+                for(qw(file url)) {
+                    if( $msg->{$_} ) {
+                        $msg->{ $_} = "$msg->{$_}";
+                    };
+                };
+                
+                my $lang = detect_language($body, $msg);
+                
+                $lang->then(sub{
+                    my $found_lang = $_[0]; #'en';
+                    #warn "Have language '$found_lang'";
+                    return find_or_create_index($e, $index_name,$found_lang, 'file')
+                })->then( sub {
+                    my( $full_name ) = @_;
+                    #warn $msg->{mime_type};
+                    
+                    # munge the title so we get magic completion for document titles:
+                    # This should be mostly done in an Elasticsearch filter+analyzer combo
+                    # Except for bands/song titles, which we want to manually munge
+                    my @parts = map {lc $_}
+                                ((split /\s+/, $msg->{title}),
+                                (split m![\\/]!, $msg->{url}));
+                    $msg->{title_suggest} = {
+                        input => \@parts,
+                        output => $msg->{title},
+                        
+                        # Maybe some payload to directly link to the document. Later
+                        payload => {
+                                url => $msg->{url}
+                                # , $msg->{mime_type}
+                            },
+                    };
+                    
+                    # https://www.elastic.co/guide/en/elasticsearch/guide/current/one-lang-docs.html
+                    #warn "Storing document into $full_name";
+                    
+                    # Switch this to a bulk converter
+                    #$e->index({
+                    $bulk->index({
+                            index   => $full_name,
+                            type    => 'file', # or 'attachment' ?!
+                            id      => $msg->{url}, # we want to overwrite
+                            # index bcc, cc, to, from
+                            #body    => $msg # "body" for non-bulk, "source" for bulk ...
+                            source  => $msg # "body" for non-bulk, "source" for bulk ...
+                    });
+                })->then(sub{
+                       # Also add the document to the potential keywords for suggestion
+                       #warn "Done."
+                       return ()
+                })->catch(sub {undef $msg; warn $_ for @_ });
+           } @batch
+        );
+    };
+    await $bulk->flush;
+    sleep 1;
+    
+    print "$folder done\n";
 };
-#$importer->flush;
