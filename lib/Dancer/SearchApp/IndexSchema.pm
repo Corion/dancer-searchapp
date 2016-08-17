@@ -31,7 +31,10 @@ sub multilang_text($$) {
           "fields" =>  {
               $name => {
                    "type" => "string",
-                   "analyzer" => $analyzer,
+                   # XXX make configurable per language/synonyms or not
+                   filter => ['searchapp_synonyms_en'],
+                   #"analyzer" => $analyzer,
+                   "analyzer" => 'searchapp_synonyms_en',
                    "index" => "analyzed",
                     "store" => $true,
               },
@@ -154,8 +157,19 @@ sub find_or_create_index {
                                    "tokenizer" => "standard",
                                    "filter" => ["standard", "lowercase", "filter_stop", "filter_underscores", "filter_shingle"],
                                 },
+                                # XXX make configurable per language
+                                "searchapp_synonyms_en" => {
+                                   "tokenizer" => "standard",
+                                   "filter" => ["lowercase", "searchapp_synonyms_en"],
+                                },
                             },
                             "filter" => {
+                                # XXX make configurable per language
+                                "searchapp_synonyms_en" => {
+                                    "type" =>  "synonym", 
+                                    # relative to the ES config directory
+                                    "synonyms_path" => "synonyms/synonyms_en.txt"
+                                },
                                 "filter_underscores" => {
                                    "type" => "stop",
                                    "stopwords" => ['_'],
