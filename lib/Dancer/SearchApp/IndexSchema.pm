@@ -196,7 +196,7 @@ sub find_or_create_index {
                         $_->resolve( $full_name );
                     };
                     delete $pending_creation{ $full_name };
-                }, sub { warn "Couldn't create index $full_name: " . Dumper \@_});
+                }, sub { warn "Couldn't create index $full_name: " . $_[0]->{text}  });
             };
         });
     } else {
