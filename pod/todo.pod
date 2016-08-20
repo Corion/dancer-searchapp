@@ -2,11 +2,21 @@
 
 =head2 Name
 
-* Come up with a good name
+=over 4
 
-* YODA (from the image in the talk)?
+=item *
 
-* "Answers you seek?"
+Come up with a good name
+
+=item *
+
+YODA (from the image in the talk)?
+
+=item *
+
+"Answers you seek?"
+
+=back
 
 =head2 Pages
 
@@ -194,6 +204,12 @@ an optional walk-through through the search page and results page.
 =head1 Code structure
 
 =head2 Crawlers
+
+=head3 ICAL file parser
+
+ICal files are conveniently available, for example from the YAPC::Europe
+program and provide a quick start to a searchable corpus. Also see
+L<Cal::DAV>, which can parse the calendar entries.
 
 =head3 Single URL submitter
 
