@@ -20,6 +20,53 @@ $VERSION = '0.05';
 
 @types = (qw(file mail http));
 
+=head2 Boost direct matches, still allow synonyms
+
+PUT /<index_name>/<type_name>/_mapping
+{
+  "<type>": {
+    "properties": {
+      "title": {
+        "type": "string",
+        "fields": {
+          "exact": {
+            "type": "string",
+            "index": "not_analyzed"
+          },          
+          "synonym": {
+            "type": "string",
+            "index": "analyzed",
+            "analyzer": "synonym_analyzer"
+          },
+          "stemmed": {
+            "type": "string",
+            "index": "analyzed",
+            "analyzer": "stemming_analyzer"
+          }
+        }
+      }
+    }
+  }
+}
+
+And the following query should match as you wish :
+
+POST /<index_name>/<type_name>/_search
+{
+  "query": {
+    "multi_match": {
+      "query": "injury",
+      "fields": [
+        "title.exact^3",
+        "title.synonym^2",
+        "title.stemmed"
+      ]
+    }
+  }
+}
+
+=cut
+
 # Datenstruktur für ES Felder, deren Sprache wir nicht kennen
 sub multilang_text($$) {
     my($name, $analyzer)= @_;
@@ -38,6 +85,7 @@ sub multilang_text($$) {
                    "index" => "analyzed",
                     "store" => $true,
               },
+              
               # This is misnamed - it's more the autocorrect filter
               # usable for "did you mean XY" responses
               "autocomplete" => {

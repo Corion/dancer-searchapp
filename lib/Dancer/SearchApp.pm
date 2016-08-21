@@ -136,6 +136,7 @@ get '/' => sub {
                 from => $from,
                 size => $size,
                 query => {
+                    # multi_match => { ... grep for the non-autocomplete stuff, and include the boosters
                     filtered => {
                         query => {
                             query_string => {
