@@ -33,12 +33,6 @@ my $config = get_defaults(
     names => [
         ['elastic_search/index' => 'elastic_search/index' => 'SEARCHAPP_ES_INDEX', 'dancer-searchapp'],
         ['elastic_search/nodes' => 'elastic_search/nodes' => 'SEARCHAPP_ES_NODES', 'localhost:9200'],
-        ['imap/server'          => 'imap/server'          => IMAP_SERVER => 'localhost' ],
-        ['imap/port'            => 'imap/port'            => IMAP_PORT => '993' ],
-        ['imap/username'        => 'imap/username'        => IMAP_USER  => ],
-        ['imap/password'        => 'imap/password'        => IMAP_PASSWORD => ],
-        ['imap/debug'           => 'imap/debug'           => IMAP_DEBUG => ],
-        ['imap/folders'         => 'imap/folders'         => undef => []],
     ],
 );
 my $index_name = $config->{elastic_search}->{index};
@@ -133,42 +127,30 @@ sub get_messages_from_folder {
     return @message_uids;
 };
 
-my @folders = imap_recurse(imap, $config->{imap});
-for my $folder (@folders) {
+my @calendars = @ARGV;
+for my $calendar_file (@calendars) {
     my @messages;
-    print "Reading $folder\n";
+    print "Reading $calendar_file\n";
     
     $ical = Cal::DAV->new()->parse(
-        filename => $filename,
+        filename => $calendar_file,
     );
     
-    ...
+    # Get all events and add them as individual documents
     
     push @messages, map {
         # This doesn't handle attachments yet :-/
-        Mail::Email::IMAP->from_imap_client(imap(), $_,
-            folder => $folder
-        );
     } get_messages_from_folder( $folder );
 
     my $done = AnyEvent->condvar;
 
-    #my $ld = $e->langdetect;
-    # Import
-    print sprintf "Importing %d messages\n", 0+@messages;
+    print sprintf "Importing %d items\n", 0+@messages;
     collect(
         map {
             my $msg = $_;
             my $body = $msg->body;
-            #my $lang = $ld->detect_languages( body => $body );
-            #warn "Language promise";
-            #$lang->then( sub {
-            #    my $l = $_[0]->[0]->{language};
-            #    warn "Language detected: $l";
-            
-            #}, sub { die "ERR:" . Dumper \@_; })
-                my $lang = 'de';
-                find_or_create_index($e, $index_name,$lang, 'mail')
+            my $lang = 'en';
+            find_or_create_index($e, $index_name,$lang, 'file')
             ->then( sub {
                 my( $full_name ) = @_;
                 
@@ -181,13 +163,12 @@ for my $folder (@folders) {
                     output => $msg->subject,
                     # Maybe some payload to directly link to the document. Later
                 };
-
                 
                 # https://www.elastic.co/guide/en/elasticsearch/guide/current/one-lang-docs.html
                 #warn "Storing document";
                 $e->index({
                         index   => $full_name,
-                        type    => 'mail', # or 'attachment' ?!
+                        type    => 'file', # or 'attachment' ?!
                         #id      => $msg->messageid,
                         id      => $msg->uid,
                         # index bcc, cc, to, from
@@ -213,6 +194,4 @@ for my $folder (@folders) {
     });
     
     $done->recv;
-    #$importer->flush;
 };
-#$importer->flush;
