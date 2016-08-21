@@ -1,6 +1,6 @@
 #!perl -w
 use strict;
-use AnyEvent;
+#use AnyEvent;
 use Search::Elasticsearch::Async;
 use Search::Elasticsearch::Async::Bulk;
 use Promises qw[collect deferred];
@@ -21,7 +21,7 @@ use Dancer::SearchApp::IndexSchema qw(create_mapping find_or_create_index %indic
 use Dancer::SearchApp::Utils qw(await);
 use Dancer::SearchApp::Extractor;
 
-#use CORION::Apache::Tika::Server;
+use lib 'C:/Users/Corion/Projekte/Apache-Tika-Async/lib';
 use Apache::Tika::Server;
 
 use JSON::MaybeXS;
@@ -33,7 +33,7 @@ my $false = JSON->false;
   # index a directory and its subdirectories
   index-filesytem.pl $HOME
   
-  # Use defaults from ./fs-import.yml
+  # Use settings from ~/myconfig.yml
   index-filesystem.pl -c ~/myconfig.yml
 
   # Drop and recreate index:
@@ -60,13 +60,15 @@ my $config = get_defaults(
     ],
 );
 
+warn Dumper $config;
+
 my $index_name = $config->{elastic_search}->{index};
 
 my $e = Search::Elasticsearch::Async->new(
     nodes => [
         $config->{elastic_search}->{nodes},
     ],
-    plugins => ['Langdetect'],
+    #plugins => ['Langdetect'],
 );
 
 my $extractor = 'Dancer::SearchApp::Extractor';
@@ -77,20 +79,22 @@ my $tika_path = (sort { my $ad; $a =~ /server-1.(\d+)/ and $ad=$1;
                 $bd <=> $ad
               } glob $tika_glob)[0];
 die "Tika not found in '$tika_glob'" unless -f $tika_path; 
-#warn "Using '$tika_path'";
 my $tika= Apache::Tika::Server->new(
     jarfile => $tika_path,
 );
 $tika->launch;
+warn "Launched tika";
 
-my $ok = AnyEvent->condvar;
-my $info = await $e->cat->plugins;
+#my $ok = AnyEvent->condvar;
+#warn "Requesting ES plugins";
+#my $info = await $e->cat->plugins;
 
 # Koennen wir ElasticSearch langdetect als Fallback nehmen?
-my $have_langdetect = $info =~ /langdetect/i;
-if( ! $have_langdetect ) {
-    warn "Language detection disabled";
-};
+#my $have_langdetect = $info =~ /langdetect/i;
+my $have_langdetect = 0;
+#if( ! $have_langdetect ) {
+#    warn "Language detection disabled";
+#};
 
 # https://www.elastic.co/guide/en/elasticsearch/reference/current/analysis-lang-analyzer.html
 
@@ -190,6 +194,7 @@ sub get_file_info {
     $res{ folder } = "" . $file->dir;
     $res{ folder } =~ s![\\/ ]! !g;
     
+    my $info;
     eval {
         $info = $tika->get_all( $file );
     };
@@ -243,7 +248,7 @@ sub get_file_info {
     \%res
 }
 
-my $ld = $e->langdetect;
+my $ld;# = $e->langdetect;
 sub detect_language {
     my( $content, $meta ) = @_;
     my $res;
@@ -274,7 +279,7 @@ if( @ARGV) {
     $config->{fs}->{directories} = [@ARGV];
 };
 
-if( ! @ARGV ) {
+if( ! @ARGV and ! @{ $config->{fs}->{directories} }) {
     # If we don't know better, scan the (complete) profile
     my $userhome = $ENV{USERPROFILE} || $ENV{HOME};
     $config->{fs}->{directories} = [{ folder => $userhome, recurse => 1 }];

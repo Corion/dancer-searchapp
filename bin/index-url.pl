@@ -24,7 +24,7 @@ use POSIX 'strftime';
 use Dancer::SearchApp::IndexSchema qw(create_mapping find_or_create_index %indices %analyzers );
 use Dancer::SearchApp::Utils qw(await);
 
-#use lib 'C:/Users/Corion/Projekte/Apache-Tika/lib';
+use lib 'C:/Users/Corion/Projekte/Apache-Tika-Async/lib';
 use Apache::Tika::Server;
 
 use JSON::MaybeXS;
