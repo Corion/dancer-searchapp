@@ -53,14 +53,13 @@ my $file_config = LoadFile($config_file);
 my $config = get_defaults(
     env      => \%ENV,
     config   => $file_config,
-    #defaults => \%
+    #defaults => \%defaults,
     names => [
         ['elastic_search/index' => 'elastic_search/index' => 'SEARCHAPP_ES_INDEX', 'dancer-searchapp'],
         ['elastic_search/nodes' => 'elastic_search/nodes' => 'SEARCHAPP_ES_NODES', 'localhost:9200'],
+        ['fs' => 'fs' => undef, []],
     ],
 );
-
-warn Dumper $config;
 
 my $index_name = $config->{elastic_search}->{index};
 
