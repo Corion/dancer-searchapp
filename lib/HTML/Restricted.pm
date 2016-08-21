@@ -122,12 +122,20 @@ sub filter_element {
 }
 
 sub filter {
-    my( $self, $html ) = @_;
+    my( $self, $html, %options ) = @_;
 
-    # We should also allow for a premade tree getting passed in here
-    my $t = $self->tree_class->new;
-    $t->parse($html);
+    my $t = $options{treebuilder} || do {
+        # Load the class
+        (my $fn = $self->tree_class) =~ s!::!/!g;
+        require "$fn.pm";
+        
+        $self->tree_class->new;
+    };
+    
+    $t->parse($html || '<html></html>');
     $t->eof;
+    
+    $t->elementify;
     
     $self->filter_element( $t, $t->root );
     $t

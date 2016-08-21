@@ -128,7 +128,7 @@ get '/' => sub {
         };
         
         # Move this to an async query, later
-        my $index = config->{elastic_search}->{index};
+        my $index = $config->{elastic_search}->{index};
         $results = search->search(
             # Wir suchen in allen Sprachindices
             index => [ grep { /^\Q$index\E/ } sort keys %indices ],
@@ -383,7 +383,7 @@ get '/suggest/:query.json' => sub {
     #warn Dumper \%suggest_query;
     
     # Move this to an async query, later
-    my $index = config->{elastic_search}->{index};
+    my $index = $config->{elastic_search}->{index};
     my $results = search->suggest(
         index => [ grep { /^\Q$index\E/ } sort keys %indices ],
         body    => {

@@ -74,6 +74,9 @@ WriteMakefile1(
         # For media files
         'MP3::Tag' => 0,
         'Image::ExifTool' => 0,
+        
+        # For ICAL files
+        'Cal::DAV' => 0,
         },
     dist                => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
     clean               => { FILES => 'Dancer-SearchApp-*' },

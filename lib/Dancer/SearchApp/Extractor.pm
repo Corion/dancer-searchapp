@@ -3,7 +3,7 @@ use strict;
 #no warnings 'experimental';
 #use feature 'signatures';
 use Module::Pluggable search_path => __PACKAGE__, require => 1;
-use Promises 'collect';
+use Promises 'collect', 'deferred';
 use Carp 'croak';
 
 use vars qw($VERSION);
@@ -57,9 +57,15 @@ sub examine {
             %options
         )
     } ($self->plugins))->then(sub {
-        map { @$_ }
-        grep { defined $_ and @$_ } @_
-    });
+        my $res = deferred;
+        $res->resolve(
+            map { @$_ }
+            grep { defined $_ and @$_ } @_
+        );
+        $res->promise
+    })->catch( sub {
+        warn __PACKAGE__ . ": @_";
+        });
 }
 
 1;
