@@ -66,7 +66,7 @@
               </a> - (<% hit.type %>) - <% hit.source.creation_date |html %> <% hit.source.language %>(<a href="/open/<%hit.index |uri%>/<%hit.type |uri%>/<% hit.id | uri | uri %>">download</a>)</h3>
               <p><% IF hit.highlight  %>
                    <style>em {background: yellow; font-color: black;}</style>
-                   <% FOR line IN hit.highlight.content %><% line %><!-- ugh, kein Escaping hier ... --><% END %>
+                   <% FOR line IN hit.highlight.content %><% line %><%# XXX ugh, no HTML escaping here #%><% END %>
                  <% ELSE %>
                   <% hit.source.content |html %>
                  <% END %>
