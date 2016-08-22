@@ -176,9 +176,9 @@ sub find_or_create_index {
                                     # relative to the ES config directory
                                     "synonyms_path" => "synonyms/synonyms_en.txt"
                                 },
-                                "filter_${mapping}" => {
+                                "filter_stem_${lang}" => {
                                     type => "stemmer",
-                                    name => $mapping,
+                                    name => $lang,
                                 },
                                 "filter_underscores" => {
                                    "type" => "stop",
