@@ -127,6 +127,10 @@ get '/' => sub {
             @restrict_type = (filter => { term => { mime_type => $type }});
         };
         
+        my $sanitized_search_term = $search_term;
+        # Escape colons, as they're special in search queries...
+        $sanitized_search_term =~ s!([:\\])!\\$1!g;
+        
         # Move this to an async query, later
         my $index = $config->{elastic_search}->{index};
         $results = search->search(
