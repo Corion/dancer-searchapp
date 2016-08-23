@@ -5,6 +5,9 @@ use Search::Elasticsearch::Async;
 use Promises qw[collect deferred];
 #use Promises::RateLimiter;
 
+# In the long run, this should become an ::Extractor
+# instead of being a separate crawler
+
 use Dancer::SearchApp::Defaults 'get_defaults';
 use Getopt::Long;
 use Cal::DAV;
