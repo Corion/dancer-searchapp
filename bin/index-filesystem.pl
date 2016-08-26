@@ -23,6 +23,7 @@ use Dancer::SearchApp::Extractor;
 
 use lib 'C:/Users/Corion/Projekte/Apache-Tika-Async/lib';
 use Apache::Tika::Server;
+use Dancer::SearchApp::HTMLSnippet;
 
 use JSON::MaybeXS;
 my $true = JSON->true;
@@ -182,7 +183,10 @@ sub get_entries_from_folder {
         warn "Skipped $folder, no permissions\n";
     };
     
-    return grep { !$_->is_dir and ! /^\./ } @directories;
+    return
+        grep {! in_exclude_list($_, $config->{fs}->{exclude_files} ) }
+        grep { !$_->is_dir and ! /^\./ }
+        @directories;
 };
 
 
@@ -193,6 +197,7 @@ sub get_file_info {
     $res{ folder } = "" . $file->dir;
     $res{ folder } =~ s![\\/ ]! !g;
     
+    print "$file\n";
     my $info;
     eval {
         $info = $tika->get_all( $file );
@@ -211,6 +216,7 @@ sub get_file_info {
         my @info = await $extractor->examine(
               url => $url,
               info => $info,
+              meta => $meta,
               #content => \$content, # if we have it
               filename => $file, # if we have it
               folder => $res{ folder }, # if we have it
@@ -227,17 +233,14 @@ sub get_file_info {
             
             # Just use what Tika found
             
-            use HTML::Restricted;            
-            my $p = HTML::Restricted->new();
-            my $r = $p->filter( $info->content );
+            my $c = $info->content;
+            my $r = Dancer::SearchApp::HTMLSnippet->cleanup_tika( $c );
 
             $res{ title } = $meta->{"dc:title"} || $meta->{"title"} || $file->basename;
             $res{ author } = $meta->{"meta:author"}; # as HTML
             $res{ language } = $meta->{"meta:language"};
-            $res{ content } = $r->as_HTML; # as HTML
-            
-            $r->delete; # just to be safe
-            
+            $res{ content } = $r; # as HTML
+            $res{ mime_type } = $meta->{"Content-Type"};
         }
     }
 

@@ -20,9 +20,10 @@ This uses L<MP3::Tag> and thus likely only handles mp3 files.
 sub examine {
     my( $class, %options ) = @_;
     my $info = $options{info};
+    my $meta = $options{ meta };
     
     my $result = deferred;
-    my $mime_type = $info->meta->{"Content-Type"};
+    my $mime_type = $meta->{"Content-Type"};
     
     if( $mime_type =~ m!^audio/mpeg$! ) {
         my $mp3;

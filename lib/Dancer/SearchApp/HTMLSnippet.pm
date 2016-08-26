@@ -2,6 +2,7 @@ package Dancer::SearchApp::HTMLSnippet;
 use strict;
 use Filter::signatures;
 no warnings 'experimental::signatures';
+use HTML::Restrict;
 
 =head2 C<< Dancer::SearchApp::HTMLSnippet->extract_highlights >>
 
@@ -79,6 +80,33 @@ sub extract_highlights( $class, %options ) {
     };
     
     @snippets
+}
+
+sub cleanup_tika( $class, $html ) {
+    my $p = HTML::Restrict->new(
+    #    rules => { div => ['class'], },
+        rules => {
+            #p     => ['class'],
+            div   => ['class', { class => qr/^page$/i }],
+            table => [],
+            tbody => [],
+            thead => [],
+            tr    => [],
+            td    => [],
+            a     => [],
+            ul    => [],
+            ol    => [],
+            li    => [],
+        },
+        replace_img => 1,
+        strip_enclosed_content => [ 'script', 'style', 'head' ]
+    );
+        
+    # rewrite the HTML to have the page numbers!
+    # Later
+my $r = $p->process($html);
+#warn $r;
+    return $r
 }
 
 1;

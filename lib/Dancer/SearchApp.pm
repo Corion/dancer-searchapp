@@ -223,10 +223,16 @@ get '/' => sub {
                 my @show = Dancer::SearchApp::HTMLSnippet->extract_highlights(
                     html => $html,
                 );
+                
+                # Find the PDF page numbers from Tika
+                for my $s (@show) {
+                    $s->{page} = () = (substr($html,0,$s->{start}) =~ /<div class="page"/g);
+                };
+                
                 $document->{highlight}->{content} =
                     [map {
                            +{ snippet => substr( $html, $_->{start}, $_->{length} ),
-                             page    => $_->{page},
+                             page     => $_->{page},
                            }
                          } @show
                     ];
