@@ -218,18 +218,17 @@ get '/' => sub {
         # Rework the result snippets to show only the highlighted stuff, together
         # with the appropriate page number if available
             for my $document (@{ $results->{hits}->{hits} }) {
-                #warn "$_ => " . ref($document->{highlight}->{$_}) for sort keys %{$document->{highlight}};
                 my $html = $document->{highlight}->{content}->[0];
                 my @show = Dancer::SearchApp::HTMLSnippet->extract_highlights(
                     html => $html,
                     max_length => 300,
                 );
-                
+
                 # Find the PDF page numbers from Tika
                 for my $s (@show) {
                     $s->{page} = () = (substr($html,0,$s->{start}) =~ /<div class="page"/g);
                 };
-                
+
                 $document->{highlight}->{content} =
                     [map {
                            +{ snippet => substr( $html, $_->{start}, $_->{length} ),
