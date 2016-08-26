@@ -28,6 +28,27 @@ within a C<< <p class="page\d+"> >> section (or crosses that)
 
 =cut
 
+sub make_snippet( $html, $from, $to, $max_length ) {
+    my $start = $from->{start};
+    my $end = $to->{end};
+    my $fudge = int(( $max_length - ($end-$start)) / 2);
+    
+    # We want to start at something akin to a word boundary
+    if( substr($html,$start-$fudge-1,$fudge+2) =~ /\s+(.*)$/ ) {
+        $start-= length($1)
+    };
+
+    $fudge = $max_length - ($end-$start);
+    $end += length($1)
+        if( substr($html,$end,$fudge) =~ /(.*)\s+/ );
+    
+    return +{
+         start  => $start,
+         end    => $end,
+         length => $end-$start,
+    };
+};
+
 sub extract_highlights( $class, %options ) {
     $options{ max_snippets } ||= 8;
     $options{ max_length } ||= 150;
@@ -68,28 +89,22 @@ sub extract_highlights( $class, %options ) {
             } else {
                 # Snippet got too long
                 # XXX readjust / center the snippet on the match(es)
-                my $start = $highlights[$curr]->{start};
-                my $end = $highlights[$curr+$gather-1]->{end};
-                
-                my $fudge = int(( $options{ max_length } - ($end-$start)) / 2);
-                
-                # We want to start at something akin to a word boundary
-                if( substr($html,$start-$fudge-1,$fudge+2) =~ /\s+(.*)$/ ) {
-                    $start-= length($1)
-                };
-
-                $fudge = $options{ max_length } - ($end-$start);
-                $end += length($1)
-                    if( substr($html,$end,$fudge) =~ /(.*)\s+/ );
-                
-                push @snippets, +{
-                     start  => $start,
-                     end    => $end,
-                     length => $end-$start,
-                };
+                push @snippets,
+                  make_snippet( $html,
+                                $highlights[$curr],
+                                $highlights[$curr+$gather-1],
+                                $options{ max_length });
                 $curr += $gather;
                 $gather = 0;
             };
+        };
+        
+        if( ! @snippets) {
+                push @snippets,
+                  make_snippet( $html,
+                                $highlights[$curr],
+                                $highlights[$curr],
+                                $options{max_length});
         };
     };
     
