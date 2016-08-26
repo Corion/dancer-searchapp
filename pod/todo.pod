@@ -395,4 +395,14 @@ a candidate for manual improvement. How can we determine a low score?
 
 How will we determine if a query/word was abandoned?
 
+=head2 Keep track of clickthrough
+
+We should keep (server-side) track of click-throughs
+to actually find out which files/documents are viewed and
+rank those higher
+
+Also, we should have a "unrank this" link to give the user
+a way to make the engine forget misclicked "ranked" items
+easily from the results.
+
 =cut
