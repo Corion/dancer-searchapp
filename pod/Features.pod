@@ -24,6 +24,8 @@ Tabs with implicit restrictions/hidden queries
 
 Search mp3 files
 
+Search ICal calendars like Google calendar(?) and Davical
+
 =head2 Distribution
 
 =head3 Docker

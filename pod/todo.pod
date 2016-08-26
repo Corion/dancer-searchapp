@@ -44,8 +44,6 @@ Display entry URL + title in the autocomplete dropdown
 
 * Search images
 
-* Strip out or silence even more HTML tags (H1 etc.)
-
 =head3 Result fragment / document rendering
 
 Come up with a concept to render different mime types differently.
@@ -204,12 +202,6 @@ an optional walk-through through the search page and results page.
 =head1 Code structure
 
 =head2 Crawlers
-
-=head3 ICAL file parser
-
-ICal files are conveniently available, for example from the YAPC::Europe
-program and provide a quick start to a searchable corpus. Also see
-L<Cal::DAV>, which can parse the calendar entries.
 
 =head3 Single URL submitter
 
