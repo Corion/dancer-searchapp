@@ -68,10 +68,24 @@ sub extract_highlights( $class, %options ) {
             } else {
                 # Snippet got too long
                 # XXX readjust / center the snippet on the match(es)
+                my $start = $highlights[$curr]->{start};
+                my $end = $highlights[$curr+$gather-1]->{end};
+                
+                my $fudge = int(( $options{ max_length } - ($end-$start)) / 2);
+                
+                # We want to start at something akin to a word boundary
+                if( substr($html,$start-$fudge-1,$fudge+2) =~ /\s+(.*)$/ ) {
+                    $start-= length($1)
+                };
+
+                $fudge = $options{ max_length } - ($end-$start);
+                $end += length($1)
+                    if( substr($html,$end,$fudge) =~ /(.*)\s+/ );
+                
                 push @snippets, +{
-                     start  => $highlights[$curr]->{start},
-                     end    => $highlights[$curr+$gather-1]->{end},
-                     length => $highlights[$curr+$gather-1]->{end} - $highlights[$curr]->{start},
+                     start  => $start,
+                     end    => $end,
+                     length => $end-$start,
                 };
                 $curr += $gather;
                 $gather = 0;

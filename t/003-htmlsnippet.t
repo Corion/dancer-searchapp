@@ -48,6 +48,7 @@ if( ! is 0+@outside, 0, "No snippet reaches outside the HTML string") {
 };
 
 # Collext all overlapping snippets (there shouldn't be any)
+# relax this - there should not be overlaps in the matched keywords
 my @overlaps;
 
 # Unaccidentially quadratic

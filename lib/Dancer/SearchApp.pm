@@ -222,6 +222,7 @@ get '/' => sub {
                 my $html = $document->{highlight}->{content}->[0];
                 my @show = Dancer::SearchApp::HTMLSnippet->extract_highlights(
                     html => $html,
+                    max_length => 300,
                 );
                 
                 # Find the PDF page numbers from Tika
@@ -277,7 +278,7 @@ get '/cache/:index/:type/:id' => sub {
         That file does (not) exist anymore in the index.
 SORRY
         # We could delete that item from the index here...
-        # Or schedule reindexing of the resource?
+        # XXX schedule reindexing of the resource?
     }
 };
 
