@@ -61,9 +61,19 @@ for my $curr (@snippets) {
 
         # Only repeat each combination once
         # by only looking at things that start within others
+        my($start,$end,$ostart);
+        substr( $html, $curr->{start} ) =~ /^(.*?)<em>/
+            or die "No highlight found?!";
+        $start += length $1;
+        substr( $html, $curr->{start}, $curr->{length} ) =~ m!.*</em>(.*?)$!
+            or die "No highlight end found?!";
+        $end -= length $1;
+        substr( $html, $other->{start} ) =~ m!^(.*?)<em>!
+            or die "No highlight found?!";
+        $ostart += length $1;
         push @overlaps, [$curr,$other]
-            if(     $curr->{start} <= $other->{start}
-                and $curr->{end} >= $other->{start}
+            if(     $start <= $ostart
+                and $end   >= $ostart
               );
     };
 };
