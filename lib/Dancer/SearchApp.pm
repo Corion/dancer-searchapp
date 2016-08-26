@@ -215,8 +215,8 @@ get '/' => sub {
     } else {
 
         if( $results and $results->{hits} and $results->{hits}->{hits} and $results->{hits}->{hits}->[0]->{highlight}) {
-        # Rework the result snippets to show only the highlighted stuff, together
-        # with the appropriate page number if available
+            # Rework the result snippets to show only the highlighted stuff, together
+            # with the appropriate page number if available
             for my $document (@{ $results->{hits}->{hits} }) {
                 my $html = $document->{highlight}->{content}->[0];
                 my @show = Dancer::SearchApp::HTMLSnippet->extract_highlights(
@@ -236,10 +236,6 @@ get '/' => sub {
                            }
                          } @show
                     ];
-                    #= [map { +{ content => [substr( $html, $_->{start}, $_->{end} ),
-                    #            page     => $_->{page}
-                    #       }
-                    #  } @show];
             };
         };
     
@@ -500,7 +496,7 @@ I've given a talk about this module at Perl conferences:
 
 L<German Perl Workshop 2016, German|http://corion.net/talks/dancer-searchapp/dancer-searchapp.de.html>
 
-L<German Perl Workshop 2016, English|http://corion.net/talks/dancer-searchapp/dancer-searchapp.en.html>
+L<YAPC::Europe 2016, Cluj, English|http://corion.net/talks/dancer-searchapp/dancer-searchapp.en.html>
 
 =head1 BUG TRACKER
 
