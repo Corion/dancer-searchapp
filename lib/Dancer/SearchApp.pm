@@ -10,6 +10,7 @@ use URI::file;
 use Dancer::SearchApp::Defaults 'get_defaults';
 
 use Dancer::SearchApp::Entry;
+use Dancer::SearchApp::HTMLSnippet;    
 
 use vars qw($VERSION $es %indices);
 $VERSION = '0.05';
@@ -158,7 +159,10 @@ get '/' => sub {
                     "pre_tags" => '<b>',
                     "post_tags" => '</b>',
                     "fields" => {
-                        "content" => {}
+                    # we want the whole content so we can strip it down
+                    # ourselves:
+                        "content" => {"number_of_fragments" => 0},
+                        #"content" => {}
                     }
                 }
             }
@@ -209,8 +213,30 @@ get '/' => sub {
             }
         };
     } else {
+
+        if( $results and $results->{hits} and $results->{hits}->{hits} and $results->{hits}->{hits}->[0]->{highlight}) {
+        # Rework the result snippets to show only the highlighted stuff, together
+        # with the appropriate page number if available
+            for my $document (@{ $results->{hits}->{hits} }) {
+                #warn "$_ => " . ref($document->{highlight}->{$_}) for sort keys %{$document->{highlight}};
+                my $html = $document->{highlight}->{content}->[0];
+                my @show = Dancer::SearchApp::HTMLSnippet->extract_highlights(
+                    html => $html,
+                );
+                $document->{highlight}->{content} =
+                    [map {
+                           +{ snippet => substr( $html, $_->{start}, $_->{length} ),
+                             page    => $_->{page},
+                           }
+                         } @show
+                    ];
+                    #= [map { +{ content => [substr( $html, $_->{start}, $_->{end} ),
+                    #            page     => $_->{page}
+                    #       }
+                    #  } @show];
+            };
+        };
     
-        # Output the search results
         template 'index', {
                 results => ($results ? $results->{hits} : undef ),
                 params => {
