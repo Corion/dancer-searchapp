@@ -67,7 +67,7 @@
               <p><% IF hit.highlight  %>
                    <style>em {background: yellow; font-color: black;}</style>
                    <% FOR line IN hit.highlight.content %>
-                     <% IF line.page %><a href="/inline/<%hit.index |uri%>/<%hit.type |uri%>/<% hit.id | uri | uri %>#page=<% line.page %>"><% END %>
+                     <% IF line.page %><a href="/inline/<%hit.index |uri%>/<%hit.type |uri%>/<% hit.id | uri | uri %>#page=<% line.page %>"><br><% END %>
                      <% line.snippet %><%# XXX ugh, no HTML escaping here #%><% END %>
                      <% IF line.page %></a><% END %>
                  <% ELSE %>
