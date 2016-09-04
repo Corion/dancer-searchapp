@@ -10,6 +10,7 @@ use URI::file;
 use Dancer::SearchApp::Defaults 'get_defaults';
 
 use Dancer::SearchApp::Entry;
+use Dancer::SearchApp::HTMLSnippet;    
 
 use vars qw($VERSION $es %indices);
 $VERSION = '0.05';
@@ -127,6 +128,10 @@ get '/' => sub {
             @restrict_type = (filter => { term => { mime_type => $type }});
         };
         
+        my $sanitized_search_term = $search_term;
+        # Escape colons, as they're special in search queries...
+        $sanitized_search_term =~ s!([:\\])!\\$1!g;
+        
         # Move this to an async query, later
         my $index = $config->{elastic_search}->{index};
         $results = search->search(
@@ -155,7 +160,10 @@ get '/' => sub {
                     "pre_tags" => '<b>',
                     "post_tags" => '</b>',
                     "fields" => {
-                        "content" => {}
+                    # we want the whole content so we can strip it down
+                    # ourselves:
+                        "content" => {"number_of_fragments" => 0},
+                        #"content" => {}
                     }
                 }
             }
@@ -206,8 +214,32 @@ get '/' => sub {
             }
         };
     } else {
+
+        if( $results and $results->{hits} and $results->{hits}->{hits} and $results->{hits}->{hits}->[0]->{highlight}) {
+            # Rework the result snippets to show only the highlighted stuff, together
+            # with the appropriate page number if available
+            for my $document (@{ $results->{hits}->{hits} }) {
+                my $html = $document->{highlight}->{content}->[0];
+                my @show = Dancer::SearchApp::HTMLSnippet->extract_highlights(
+                    html => $html,
+                    max_length => 300,
+                );
+
+                # Find the PDF page numbers from Tika
+                for my $s (@show) {
+                    $s->{page} = () = (substr($html,0,$s->{start}) =~ /<div class="page"/g);
+                };
+
+                $document->{highlight}->{content} =
+                    [map {
+                           +{ snippet => substr( $html, $_->{start}, $_->{length} ),
+                             page     => $_->{page},
+                           }
+                         } @show
+                    ];
+            };
+        };
     
-        # Output the search results
         template 'index', {
                 results => ($results ? $results->{hits} : undef ),
                 params => {
@@ -242,7 +274,7 @@ get '/cache/:index/:type/:id' => sub {
         That file does (not) exist anymore in the index.
 SORRY
         # We could delete that item from the index here...
-        # Or schedule reindexing of the resource?
+        # XXX schedule reindexing of the resource?
     }
 };
 
@@ -465,7 +497,7 @@ I've given a talk about this module at Perl conferences:
 
 L<German Perl Workshop 2016, German|http://corion.net/talks/dancer-searchapp/dancer-searchapp.de.html>
 
-L<German Perl Workshop 2016, English|http://corion.net/talks/dancer-searchapp/dancer-searchapp.en.html>
+L<YAPC::Europe 2016, Cluj, English|http://corion.net/talks/dancer-searchapp/dancer-searchapp.en.html>
 
 =head1 BUG TRACKER
 

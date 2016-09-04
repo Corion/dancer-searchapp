@@ -12,6 +12,9 @@ my $false = JSON->false;
 
 Dancer::SearchApp::IndexSchema - schema definition for the Elasticsearch index
 
+XXX Consider maybe etending this so different items (like Tweets, RSS)
+have different fields instead of mushing all metadata into the same schema
+
 =cut
 
 use vars qw(@EXPORT_OK $VERSION @types);
@@ -73,11 +76,17 @@ sub multilang_text($$) {
     my($name, $analyzer)= @_;
     return { 
           "type" => "multi_field",
-          #"type" => "string",
 
           # Also for the suggestion box
           "fields" =>  {
               $name => {
+                   "type" => "string",
+                   filter => ['standard','lowercase',"${analyzer}_stemmer"],
+                   "analyzer" => $analyzer,
+                   "index" => "analyzed",
+                    "store" => $true,
+              },
+              "${name}_synonyms" => {
                    "type" => "string",
                    # XXX make configurable per language/synonyms or not
                    filter => ['searchapp_synonyms_en'],
@@ -218,6 +227,10 @@ sub find_or_create_index {
                                     "type" =>  "synonym", 
                                     # relative to the ES config directory
                                     "synonyms_path" => "synonyms/synonyms_en.txt"
+                                },
+                                "filter_stem_${lang}" => {
+                                    type => "stemmer",
+                                    name => $lang,
                                 },
                                 "filter_underscores" => {
                                    "type" => "stop",

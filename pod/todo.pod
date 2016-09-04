@@ -44,8 +44,6 @@ Display entry URL + title in the autocomplete dropdown
 
 * Search images
 
-* Strip out or silence even more HTML tags (H1 etc.)
-
 =head3 Result fragment / document rendering
 
 Come up with a concept to render different mime types differently.
@@ -204,12 +202,6 @@ an optional walk-through through the search page and results page.
 =head1 Code structure
 
 =head2 Crawlers
-
-=head3 ICAL file parser
-
-ICal files are conveniently available, for example from the YAPC::Europe
-program and provide a quick start to a searchable corpus. Also see
-L<Cal::DAV>, which can parse the calendar entries.
 
 =head3 Single URL submitter
 
@@ -402,5 +394,15 @@ a candidate for manual improvement. How can we determine a low score?
 =head2 top 10 abandoned queries
 
 How will we determine if a query/word was abandoned?
+
+=head2 Keep track of clickthrough
+
+We should keep (server-side) track of click-throughs
+to actually find out which files/documents are viewed and
+rank those higher
+
+Also, we should have a "unrank this" link to give the user
+a way to make the engine forget misclicked "ranked" items
+easily from the results.
 
 =cut

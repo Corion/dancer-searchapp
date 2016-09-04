@@ -43,6 +43,7 @@ WriteMakefile1(
         'Dancer'     => 1.3132,
         'JSON'       => 0, # we use the "JSON" serializer
         'HTML::Entities' => 0,
+        'HTML::Restrict' => 0,
         'Template'   => 0,
         'Search::Elasticsearch' => 2,
         'Search::Elasticsearch::Async' => 2,

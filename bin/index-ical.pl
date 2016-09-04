@@ -5,6 +5,9 @@ use Search::Elasticsearch::Async;
 use Promises qw[collect deferred];
 #use Promises::RateLimiter;
 
+# In the long run, this should become an ::Extractor
+# instead of being a separate crawler
+
 use Dancer::SearchApp::Defaults 'get_defaults';
 use Getopt::Long;
 use Cal::DAV;
@@ -33,12 +36,7 @@ my $config = get_defaults(
     names => [
         ['elastic_search/index' => 'elastic_search/index' => 'SEARCHAPP_ES_INDEX', 'dancer-searchapp'],
         ['elastic_search/nodes' => 'elastic_search/nodes' => 'SEARCHAPP_ES_NODES', 'localhost:9200'],
-        ['imap/server'          => 'imap/server'          => IMAP_SERVER => 'localhost' ],
-        ['imap/port'            => 'imap/port'            => IMAP_PORT => '993' ],
-        ['imap/username'        => 'imap/username'        => IMAP_USER  => ],
-        ['imap/password'        => 'imap/password'        => IMAP_PASSWORD => ],
-        ['imap/debug'           => 'imap/debug'           => IMAP_DEBUG => ],
-        ['imap/folders'         => 'imap/folders'         => undef => []],
+        ['calendars' => 'calendars' => undef, []],
     ],
 );
 my $index_name = $config->{elastic_search}->{index};
@@ -98,121 +96,129 @@ sub in_exclude_list {
     scalar grep { $item =~ /$_/ } @$list
 };
 
-# This should go into crawler::imap
-
-sub get_messages_from_folder {
-    my( $folder, @message_uids )= @_;
+sub get_messages_from_calendar {
+    my( $calendar )= @_;
     # Add rate-limiting counter here, so we don't flood the IMAP server
     #     with reconnect attempts
-    my $ok = eval {
-        imap->select( $folder )
-            or die "Select '$folder' error: ", $imap->LastError, "\n";
-        1;
-    };
-    if( ! $ok and $@ =~ /Write failed/) {
-        # Try a reconnect
-        undef $imap;
-        imap->select( $folder )
-            or die "Select '$folder' error: ", $imap->LastError, "\n";
-    };
-
-    if( ! @message_uids ) {
-        # Read folder
-        if( imap->has_capability('thread')) {
-            @message_uids = imap->thread();
-        } elsif( imap->has_capability('sort')) {
-            @message_uids = imap->sort("REVERSE DATE", 'UTF-8', "ALL");
-            if(! defined $message_uids[0]) {
-                warn "Got an empty UID, don't know why?! " . imap->LastError;
-            };
-        } else {
-            # read messages
-            @message_uids = imap->messages();
-        };
-    };
-    return @message_uids;
+    my $c = $calendar->cal;
+    my $en  = $c->entries;
+    return
+        grep {
+            $_->ical_entry_type =~ /^VEVENT$/
+        }    
+        @{ $en };
 };
 
-my @folders = imap_recurse(imap, $config->{imap});
-for my $folder (@folders) {
+sub ical_property {
+    join ' ', map{$_->value } @{$_[0]->property($_[1])||[]}
+};
+
+sub ical_to_msg {
+    my( $event ) = @_;
+    # XXX Here we might want to use a template while importing?!
+    my $body = ical_property($event,'description') . ical_property($event,'attendee');
+    my $html_content = sprintf <<'HTML',ical_property($event,'dtstart'),ical_property($event,'dtend'),ical_property($event,'summary'),ical_property($event,'attendee'),ical_property($event,'url'),ical_property($event,'description');
+    %s - %s<br>
+    <b>%s</b><br>
+    <i>%s</i><br>
+    <a href="%s">Link</a>
+    <p>%s</p>
+    <br>
+HTML
+    return {
+        summary => ical_property($event,'summary'),
+        organizer => ical_property($event,'organizer'),
+        body => $body,
+        html_content => $html_content,
+        uid => ical_property($event,'uid'),
+        url => ical_property($event,'url'), # XXX better open the event in the calendar app!
+    }
+}
+
+my @calendars = @{ $config->{calendars} || [] };
+if( @ARGV ) {
+    @calendars = map { +{ calendar => $_, name => $_, exclude => [], } } @ARGV;
+};
+
+for my $calendar_def (@calendars) {
     my @messages;
-    print "Reading $folder\n";
+    my $calendar_file = $calendar_def->{calendar};
+    print "Reading $calendar_def->{name}\n";
     
-    $ical = Cal::DAV->new()->parse(
-        filename => $filename,
+    # Also support network access here?!
+    my $caldav = Cal::DAV->new(
+        user => $calendar_def->{user} || 'none',
+        pass => $calendar_def->{pass} || 'none',
+        url  => "file://$calendar_file",
+        calname => $calendar_def->{name},
     );
-    
-    ...
+    if( $calendar_file !~ m!://! ) {
+        my $res = $caldav->parse(
+            filename => $calendar_file,
+        );
+        if(! $res or ! $caldav->cal) {
+            # Yes, parse errors result in ->cal being a Class::ReturnValue
+            # object that is false but has the ->error_message method
+            die "Couldn't parse calendar '$calendar_file': "
+                . $caldav->cal->error_message;
+        };
+    };
     
     push @messages, map {
         # This doesn't handle attachments yet :-/
-        Mail::Email::IMAP->from_imap_client(imap(), $_,
-            folder => $folder
-        );
-    } get_messages_from_folder( $folder );
+        ical_to_msg($_)
+    } get_messages_from_calendar( $caldav );
 
     my $done = AnyEvent->condvar;
 
-    #my $ld = $e->langdetect;
-    # Import
-    print sprintf "Importing %d messages\n", 0+@messages;
+    print sprintf "Importing %d items\n", 0+@messages;
     collect(
         map {
             my $msg = $_;
-            my $body = $msg->body;
-            #my $lang = $ld->detect_languages( body => $body );
-            #warn "Language promise";
-            #$lang->then( sub {
-            #    my $l = $_[0]->[0]->{language};
-            #    warn "Language detected: $l";
-            
-            #}, sub { die "ERR:" . Dumper \@_; })
-                my $lang = 'de';
-                find_or_create_index($e, $index_name,$lang, 'mail')
+            my $body = $msg->{body};
+            my $lang = 'en';
+            find_or_create_index($e, $index_name,$lang, 'file')
             ->then( sub {
                 my( $full_name ) = @_;
                 
                 # munge the title so we get magic completion for document titles:
                 # This should be mostly done in an Elasticsearch filter+analyzer combo
                 # Except for bands/song titles, which we want to manually munge
-                my @parts = map {lc $_} (split /\s+/, $msg->subject);
+                my @parts = map {lc $_} (split /\s+/, $msg->{summary});
                 $msg->{title_suggest} = {
                     input => \@parts,
-                    output => $msg->subject,
+                    output => $msg->{summary},
                     # Maybe some payload to directly link to the document. Later
                 };
-
                 
                 # https://www.elastic.co/guide/en/elasticsearch/guide/current/one-lang-docs.html
                 #warn "Storing document";
                 $e->index({
                         index   => $full_name,
-                        type    => 'mail', # or 'attachment' ?!
+                        type    => 'file', # or 'attachment' ?!
                         #id      => $msg->messageid,
-                        id      => $msg->uid,
+                        id      => $msg->{uid},
                         # index bcc, cc, to, from
                         # content-type, ...
                         body    => { # "body" for non-bulk, "source" for bulk ...
                         #source    => {
-                            url       => $msg->messageid,
-                            title     => $msg->subject,
+                            url       => $msg->{url},
+                            title     => $msg->{summary} . "($calendar_def->{name})",
                             title_suggest => $msg->{title_suggest}, # ugh
-                            folder    => $msg->{folder},
-                            #from    => $msg->from,
+                            folder    => $calendar_def->{name},
+                            from      => $msg->{organizer},
                             #to      => [ $msg->recipients ],
-                            content => "From: " . join( ",", $msg->from ) .  "<br/>\n To: " . join( ",", $msg->recipients ) . "<br/>\n" . $body,
+                            content => $msg->{html_content},
                             language => $lang,
-                            date    => $msg->date->strftime('%Y-%m-%d %H:%M:%S'),
+                            #date    => $msg->date->strftime('%Y-%m-%d %H:%M:%S'),
                         }
                  });
                })->then(sub{ $|=1; print "."; }, sub {warn Dumper \@_});
        } @messages
     )->then(sub {
-        print "$folder done\n";
+        print "$calendar_file done\n";
         $done->send;
     });
     
     $done->recv;
-    #$importer->flush;
 };
-#$importer->flush;

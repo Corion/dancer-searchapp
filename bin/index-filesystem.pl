@@ -1,6 +1,6 @@
 #!perl -w
 use strict;
-use AnyEvent;
+#use AnyEvent;
 use Search::Elasticsearch::Async;
 use Search::Elasticsearch::Async::Bulk;
 use Promises qw[collect deferred];
@@ -21,8 +21,9 @@ use Dancer::SearchApp::IndexSchema qw(create_mapping find_or_create_index %indic
 use Dancer::SearchApp::Utils qw(await);
 use Dancer::SearchApp::Extractor;
 
-#use CORION::Apache::Tika::Server;
+use lib 'C:/Users/Corion/Projekte/Apache-Tika-Async/lib';
 use Apache::Tika::Server;
+use Dancer::SearchApp::HTMLSnippet;
 
 use JSON::MaybeXS;
 my $true = JSON->true;
@@ -33,7 +34,7 @@ my $false = JSON->false;
   # index a directory and its subdirectories
   index-filesytem.pl $HOME
   
-  # Use defaults from ./fs-import.yml
+  # Use settings from ~/myconfig.yml
   index-filesystem.pl -c ~/myconfig.yml
 
   # Drop and recreate index:
@@ -53,10 +54,11 @@ my $file_config = LoadFile($config_file);
 my $config = get_defaults(
     env      => \%ENV,
     config   => $file_config,
-    #defaults => \%
+    #defaults => \%defaults,
     names => [
         ['elastic_search/index' => 'elastic_search/index' => 'SEARCHAPP_ES_INDEX', 'dancer-searchapp'],
         ['elastic_search/nodes' => 'elastic_search/nodes' => 'SEARCHAPP_ES_NODES', 'localhost:9200'],
+        ['fs' => 'fs' => undef, []],
     ],
 );
 
@@ -66,7 +68,7 @@ my $e = Search::Elasticsearch::Async->new(
     nodes => [
         $config->{elastic_search}->{nodes},
     ],
-    plugins => ['Langdetect'],
+    #plugins => ['Langdetect'],
 );
 
 my $extractor = 'Dancer::SearchApp::Extractor';
@@ -77,20 +79,22 @@ my $tika_path = (sort { my $ad; $a =~ /server-1.(\d+)/ and $ad=$1;
                 $bd <=> $ad
               } glob $tika_glob)[0];
 die "Tika not found in '$tika_glob'" unless -f $tika_path; 
-#warn "Using '$tika_path'";
 my $tika= Apache::Tika::Server->new(
     jarfile => $tika_path,
 );
 $tika->launch;
+warn "Launched tika";
 
-my $ok = AnyEvent->condvar;
-my $info = await $e->cat->plugins;
+#my $ok = AnyEvent->condvar;
+#warn "Requesting ES plugins";
+#my $info = await $e->cat->plugins;
 
 # Koennen wir ElasticSearch langdetect als Fallback nehmen?
-my $have_langdetect = $info =~ /langdetect/i;
-if( ! $have_langdetect ) {
-    warn "Language detection disabled";
-};
+#my $have_langdetect = $info =~ /langdetect/i;
+my $have_langdetect = 0;
+#if( ! $have_langdetect ) {
+#    warn "Language detection disabled";
+#};
 
 # https://www.elastic.co/guide/en/elasticsearch/reference/current/analysis-lang-analyzer.html
 
@@ -179,7 +183,10 @@ sub get_entries_from_folder {
         warn "Skipped $folder, no permissions\n";
     };
     
-    return grep { !$_->is_dir and ! /^\./ } @directories;
+    return
+        grep {! in_exclude_list($_, $config->{fs}->{exclude_files} ) }
+        grep { !$_->is_dir and ! /^\./ }
+        @directories;
 };
 
 
@@ -190,6 +197,8 @@ sub get_file_info {
     $res{ folder } = "" . $file->dir;
     $res{ folder } =~ s![\\/ ]! !g;
     
+    print "$file\n";
+    my $info;
     eval {
         $info = $tika->get_all( $file );
     };
@@ -207,6 +216,7 @@ sub get_file_info {
         my @info = await $extractor->examine(
               url => $url,
               info => $info,
+              meta => $meta,
               #content => \$content, # if we have it
               filename => $file, # if we have it
               folder => $res{ folder }, # if we have it
@@ -223,17 +233,14 @@ sub get_file_info {
             
             # Just use what Tika found
             
-            use HTML::Restricted;            
-            my $p = HTML::Restricted->new();
-            my $r = $p->filter( $info->content );
+            my $c = $info->content;
+            my $r = Dancer::SearchApp::HTMLSnippet->cleanup_tika( $c );
 
             $res{ title } = $meta->{"dc:title"} || $meta->{"title"} || $file->basename;
             $res{ author } = $meta->{"meta:author"}; # as HTML
             $res{ language } = $meta->{"meta:language"};
-            $res{ content } = $r->as_HTML; # as HTML
-            
-            $r->delete; # just to be safe
-            
+            $res{ content } = $r; # as HTML
+            $res{ mime_type } = $meta->{"Content-Type"};
         }
     }
 
@@ -243,7 +250,7 @@ sub get_file_info {
     \%res
 }
 
-my $ld = $e->langdetect;
+my $ld;# = $e->langdetect;
 sub detect_language {
     my( $content, $meta ) = @_;
     my $res;
@@ -274,7 +281,7 @@ if( @ARGV) {
     $config->{fs}->{directories} = [@ARGV];
 };
 
-if( ! @ARGV ) {
+if( ! @ARGV and ! @{ $config->{fs}->{directories} }) {
     # If we don't know better, scan the (complete) profile
     my $userhome = $ENV{USERPROFILE} || $ENV{HOME};
     $config->{fs}->{directories} = [{ folder => $userhome, recurse => 1 }];
