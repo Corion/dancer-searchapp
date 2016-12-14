@@ -5,7 +5,6 @@ use AnyEvent::HTTP;
 use Search::Elasticsearch::Async;
 use Promises backend => ['AE'], qw[collect deferred];
 #use Promises::RateLimiter;
-use Promises::RateLimiter;
 
 use Getopt::Long;
 

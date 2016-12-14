@@ -120,7 +120,7 @@ sub extract_highlights( $class, %options ) {
 
             } else {
                 # Snippet got too long
-                # XXX readjust / center the snippet on the match(es)
+                # we should later readjust / center the snippet on the match(es)
                 push @snippets,
                   make_snippet( $html,
                                 $highlights[$curr],

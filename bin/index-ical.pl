@@ -115,7 +115,7 @@ sub ical_property {
 
 sub ical_to_msg {
     my( $event ) = @_;
-    # XXX Here we might want to use a template while importing?!
+    # Here we might want to use a template while importing?!
     my $body = ical_property($event,'description') . ical_property($event,'attendee');
     my $html_content = sprintf <<'HTML',ical_property($event,'dtstart'),ical_property($event,'dtend'),ical_property($event,'summary'),ical_property($event,'attendee'),ical_property($event,'url'),ical_property($event,'description');
     %s - %s<br>
@@ -131,7 +131,9 @@ HTML
         body => $body,
         html_content => $html_content,
         uid => ical_property($event,'uid'),
-        url => ical_property($event,'url'), # XXX better open the event in the calendar app!
+        url => ical_property($event,'url'),
+        # better open the event in the calendar app!
+        # But iCal doesn't support that
     }
 }
 

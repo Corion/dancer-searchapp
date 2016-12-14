@@ -12,7 +12,7 @@ my $false = JSON->false;
 
 Dancer::SearchApp::IndexSchema - schema definition for the Elasticsearch index
 
-XXX Consider maybe extending this so different items (like Tweets, RSS)
+Consider maybe extending this so different items (like Tweets, RSS)
 have different fields instead of mushing all metadata into the same schema
 
 =cut
@@ -87,8 +87,7 @@ sub multilang_text($$) {
               },
               "${name}_synonyms" => {
                    "type" => "text",
-                   # XXX make configurable per language/synonyms or not
-                   #"analyzer" => $analyzer,
+                   # This should be configurable per language/synonyms
                    "analyzer" => 'searchapp_synonyms_en',
                    "index" => "analyzed",
                     "store" => $true,
@@ -213,7 +212,7 @@ sub find_or_create_index {
                                    "tokenizer" => "standard",
                                    "filter" => ["standard", "lowercase", "filter_stop", "filter_underscores", "filter_shingle"],
                                 },
-                                # XXX make configurable per language
+                                # Synonyms should be configurable per language
                                 "searchapp_synonyms_en" => {
                                    "tokenizer" => "standard",
                                    "filter" => ["standard", "lowercase", "searchapp_synonyms_en"],
@@ -225,7 +224,7 @@ sub find_or_create_index {
                    #"filter" => ['standard','lowercase',"${analyzer}_stemmer"],
                             },
                             "filter" => {
-                                # XXX make configurable per language
+                                # Synonyms should be configurable per language
                                 "searchapp_synonyms_en" => {
                                     "type" =>  "synonym", 
                                     # relative to the ES config directory

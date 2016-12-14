@@ -155,7 +155,6 @@ get '/' => sub {
                 sort => {
                     _score => { order => 'desc' },
                 },
-                # XXX This gets broken when we match synonyms?!
                "highlight" => {
                     "pre_tags" => '<b>',
                     "post_tags" => '</b>',
@@ -274,7 +273,7 @@ get '/cache/:index/:type/:id' => sub {
         That file does (not) exist anymore in the index.
 SORRY
         # We could delete that item from the index here...
-        # XXX schedule reindexing of the resource?
+        # or schedule reindexing of the resource?
     }
 };
 
