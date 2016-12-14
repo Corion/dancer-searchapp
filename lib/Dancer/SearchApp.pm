@@ -497,7 +497,16 @@ I've given a talk about this module at Perl conferences:
 
 L<German Perl Workshop 2016, German|http://corion.net/talks/dancer-searchapp/dancer-searchapp.de.html>
 
+L<Video on Youtube, German|https://www.youtube.com/watch?v=X4j5LgmfgZY>
+
 L<YAPC::Europe 2016, Cluj, English|http://corion.net/talks/dancer-searchapp/dancer-searchapp.en.html>
+
+L<Video on Youtube, English|https://www.youtube.com/watch?v=TXSM-Izmia8>
+
+=for html
+<iframe title="YouTube video player" class="youtube-player" type="text/html" 
+width="640" height="390" src="http://www.youtube.com/embed/TXSM-Izmia8"
+frameborder="0" allowFullScreen></iframe>
 
 =head1 BUG TRACKER
 
