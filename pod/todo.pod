@@ -216,6 +216,11 @@ Submit HTML and an URL into the index
 
 This allows for custom handling of single entries
 
+Detect "genre" of web page (forum, product, social, blog, ...)
+
+Detect porn page by using the list of word pairs at
+L<https://github.com/searchdaimon/adult-words>
+
 =head3 File system crawler
 
 Don't import hidden files by default
