@@ -73,12 +73,13 @@ my $e = Search::Elasticsearch::Async->new(
 
 my $extractor = 'Dancer::SearchApp::Extractor';
 
-my $tika_glob = 'C:/Users/Corion/Projekte/Apache-Tika-Async/jar/tika-server-*.jar';
+my $tika_glob = 'jar/tika-server-*.jar';
 my $tika_path = (sort { my $ad; $a =~ /server-1.(\d+)/ and $ad=$1;
                 my $bd; $b =~ /server-1.(\d+)/ and $bd=$1;
                 $bd <=> $ad
               } glob $tika_glob)[0];
-die "Tika not found in '$tika_glob'" unless -f $tika_path; 
+die "Tika not found in '$tika_glob'. Did you download it from https://tika.apache.org/download.html?"
+    unless -f $tika_path; 
 my $tika= Apache::Tika::Server->new(
     jarfile => $tika_path,
 );
