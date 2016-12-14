@@ -4,6 +4,25 @@ use Filter::signatures;
 no warnings 'experimental::signatures';
 use HTML::Restrict;
 
+use vars qw($VERSION);
+$VERSION = '0.05';
+
+=head1 NAME
+
+Dancer::SearchApp::HTMLSnippet - HTML snippet extractor
+
+=head1 SYNOPSIS
+
+    my @document_snippets = Dancer::SearchApp::HTMLSnippet->extract_highlights(
+        html => $html,
+        hl_tag => '<em>',
+        hl_end => '</em>',
+        snippet_length => 150,
+        max_snippets => 8,
+    );
+
+=head1 METHODS
+
 =head2 C<< Dancer::SearchApp::HTMLSnippet->extract_highlights >>
 
     my @document_snippets = Dancer::SearchApp::HTMLSnippet->extract_highlights(
@@ -48,6 +67,19 @@ sub make_snippet( $html, $from, $to, $max_length ) {
          length => $end-$start,
     };
 };
+
+=head2 C<< Dancer::SearchApp::HTMLSnippet->extract_highlights >>
+
+  my @hits = Dancer::SearchApp::HTMLSnippet->extract_highlights(
+      html => $html,
+      max_length => 300,
+  );
+  
+  for my $entry (@hits) {
+    print "Match: $entry->{start} ($entry->{length} bytes)\n";
+  };
+
+=cut
 
 sub extract_highlights( $class, %options ) {
     $options{ max_snippets } ||= 8;
@@ -110,6 +142,14 @@ sub extract_highlights( $class, %options ) {
     
     @snippets
 }
+
+=head2 C<< Dancer::SearchApp::HTMLSnippet->cleanup_tika >>
+
+  my $content = Dancer::SearchApp::HTMLSnippet->cleanup_tika( $html );
+
+Cleans up HTML output from Apache Tika.
+
+=cut
 
 sub cleanup_tika( $class, $html ) {
     my $p = HTML::Restrict->new(
