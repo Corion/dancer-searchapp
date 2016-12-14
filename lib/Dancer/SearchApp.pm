@@ -440,7 +440,7 @@ get '/suggest/:query.json' => sub {
                   value => $_->{text},
                   url   => $_->{_source}->{url},
               } }
-              sort { $b->{score} <=> $a->{score} || $b cmp $a } # sort by score+asciibetically descending
+              sort { $b->{_score} <=> $a->{_score} || $b cmp $a } # sort by score+asciibetically descending
               map { $_->{options} ? @{ $_->{options} } : () } # unwrap again
               map { @$_ } # unwrap
               grep { ref $_ eq 'ARRAY' } values %$results
