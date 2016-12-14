@@ -20,31 +20,19 @@ RUN mkdir jar \
 # Install Elasticsearch
 # + Language detection plugin
 
-# Pre-cache some modules we will most likely use
-RUN    cpanm --notest \
-           Promises \
-           Dancer \
-           JSON \
-           YAML \
-           Twiggy \
-           Template \
-           Search::Elasticsearch::Async \
-           Mail::IMAPClient \
-           Image::ExifTool \
-           MP3::Tag \
-           Plack::Middleware::Pod \
-           Text::Markdown \
-    && rm -fr /root/.cpanm /tmp/*
-
-
-# Copy the current build into the Docker image
-COPY . /root/Dancer-SearchApp/
+# Copy Makefile.PL, META.json early so we can install the prerequisites
+# so we don't rebuild the container tower needlessly
+ADD ["Makefile.PL","META.json", "./"]
+ADD ["lib/Dancer/SearchApp.pm", "lib/Dancer/"]
 
 # Install App prerequisites, using --notest to speed things up vastly,
 # at the cost of not testing the resulting setup
 RUN    cd /root/Dancer-SearchApp \
     && cpanm --notest --installdeps . \
     && rm -fr /root/.cpanm /tmp/*
+
+# Copy the current build into the Docker image
+COPY . /root/Dancer-SearchApp/
 
 # We should document the mountpoints
 # ... and install a cron job for scanning mounted directories
