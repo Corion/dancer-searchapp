@@ -19,8 +19,9 @@ use vars qw(%subject_prefixes);
 %subject_prefixes = (
     'Re:' => 1,
     'Aw:' => 1,
-    'Fwd:' => 1,
     'Antw.:' => 1,
+    'Antwort:' => 1,
+    'Fwd:' => 1,
     'Sv:' => 1,
     'Vs:' => 1,
 );
