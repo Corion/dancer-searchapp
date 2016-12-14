@@ -155,6 +155,7 @@ get '/' => sub {
                 sort => {
                     _score => { order => 'desc' },
                 },
+                # XXX This gets broken when we match synonyms?!
                "highlight" => {
                     "pre_tags" => '<b>',
                     "post_tags" => '</b>',
