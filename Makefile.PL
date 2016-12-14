@@ -35,6 +35,7 @@ WriteMakefile1(
     PL_FILES            => {},
     PREREQ_PM => {
         'Exporter' => 5, # for use Exporter 'import'
+        'Filter::signatures' => 0,
 
         'Moo' => 0, # we want some glorified hashes
 
