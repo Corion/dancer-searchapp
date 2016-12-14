@@ -259,7 +259,7 @@ for my $folder (@folders) {
                 my @parts = map {lc $_} (split /\s+/, $msg->subject);
                 $msg->{title_suggest} = {
                     input => \@parts,
-                    output => $msg->subject,
+                    #output => $msg->subject,
                     # Maybe some payload to directly link to the document. Later
                 };
 

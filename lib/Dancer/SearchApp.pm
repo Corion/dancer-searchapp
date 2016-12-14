@@ -142,8 +142,8 @@ get '/' => sub {
                 size => $size,
                 query => {
                     # multi_match => { ... grep for the non-autocomplete stuff, and include the boosters
-                    filtered => {
-                        query => {
+                    bool => {
+                        must => {
                             query_string => {
                                 query => $search_term,
                                 fields => ['title','folder','content', 'author'] #'creation_date'] 
@@ -425,7 +425,7 @@ get '/suggest/:query.json' => sub {
                 text  => $q,
                 completion => {
                     field => 'title_suggest',
-                    "fuzzy" => 2, # edit distance of 2
+                    "fuzzy" => { "fuzziness" => 2 }, # edit distance of 2
                 }
             }
             #%suggest_query
@@ -438,7 +438,7 @@ get '/suggest/:query.json' => sub {
     my @res = map {; +{
                   tokens => [split //, $_->{text}],
                   value => $_->{text},
-                  url   => $_->{payload}->{url},
+                  url   => $_->{_source}->{url},
               } }
               sort { $b->{score} <=> $a->{score} || $b cmp $a } # sort by score+asciibetically descending
               map { $_->{options} ? @{ $_->{options} } : () } # unwrap again

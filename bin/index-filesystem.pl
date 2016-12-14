@@ -298,7 +298,8 @@ for my $folder (@folders) {
     my $bulk = $e->bulk_helper(
         max_count => 10,
         on_error => sub {
-            warn "ES Error: $_" for @_   
+            my($name,$data,$code) = @_;
+            warn "ES Error: $name ($code): " . Dumper $data;
         }
     );
 
@@ -340,13 +341,13 @@ for my $folder (@folders) {
                                 (split m![\\/]!, $msg->{url}));
                     $msg->{title_suggest} = {
                         input => \@parts,
-                        output => $msg->{title},
+                        #output => $msg->{title},
                         
                         # Maybe some payload to directly link to the document. Later
-                        payload => {
-                                url => $msg->{url}
-                                # , $msg->{mime_type}
-                            },
+                        #payload => {
+                        #        url => $msg->{url}
+                        #        # , $msg->{mime_type}
+                        #    },
                     };
                     
                     # https://www.elastic.co/guide/en/elasticsearch/guide/current/one-lang-docs.html

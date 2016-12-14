@@ -3,6 +3,10 @@
     . We now do our own snippet extraction+highlighting
       for context
     + ICal importer
+    ! Elasticsearch 2.x support removed
+      There were too many breaking API changes between Elasticsearch 2.x
+      and 5.x, so I removed the support for 2.x. Sorry.
+    ! Elasticsearch 5.x required
 
 0.05 20160326
     . File system scanner now recursively imports $HOME by default

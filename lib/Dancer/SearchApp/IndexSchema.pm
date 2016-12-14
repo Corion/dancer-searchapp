@@ -75,21 +75,19 @@ POST /<index_name>/<type_name>/_search
 sub multilang_text($$) {
     my($name, $analyzer)= @_;
     return { 
-          "type" => "multi_field",
+          "type" => "text",
 
           # Also for the suggestion box
           "fields" =>  {
               $name => {
-                   "type" => "string",
-                   filter => ['standard','lowercase',"${analyzer}_stemmer"],
+                   "type" => "text",
                    "analyzer" => $analyzer,
                    "index" => "analyzed",
                     "store" => $true,
               },
               "${name}_synonyms" => {
-                   "type" => "string",
+                   "type" => "text",
                    # XXX make configurable per language/synonyms or not
-                   filter => ['searchapp_synonyms_en'],
                    #"analyzer" => $analyzer,
                    "analyzer" => 'searchapp_synonyms_en',
                    "index" => "analyzed",
@@ -101,8 +99,8 @@ sub multilang_text($$) {
               "autocomplete" => {
                   "analyzer" => "analyzer_shingle",
                   "search_analyzer" => "analyzer_shingle",
-                  "index_analyzer" => "analyzer_shingle",
-                  "type" => "string",
+                  #"index_analyzer" => "analyzer_shingle",
+                  "type" => "text",
                    "store" => $true,
               },
           }
@@ -115,7 +113,7 @@ Defines a Dancer::SearchApp index. This is currently the following
 specification:
 
         "properties" => {
-            "url"        => { type => "string" }, # file://-URL
+            "url"        => { type => "text" }, # file://-URL
             "title"      => multilang_text('title',$analyzer),
             "author"     => multilang_text('author', $analyzer),
             "content"    => multilang_text('content',$analyzer),
@@ -133,14 +131,14 @@ sub create_mapping {
     $analyzer ||= 'english';
     my $mapping = {
         "properties" => {
-            "url"        => { type => "string" }, # file://-URL
+            "url"        => { type => "text" }, # file://-URL
             "title"      => multilang_text('title',$analyzer),
 
             # Automatic (title) completion to their documents
             # https://www.elastic.co/blog/you-complete-me
             "title_suggest" => {
                   "type" => "completion",
-                  "payloads" => $true,
+                  #"payloads" => $true,
                   # Also add synonym filter
                   # Also add lowercase anaylzer
             },
@@ -148,13 +146,13 @@ sub create_mapping {
             "author"     => multilang_text('author', $analyzer),
             "content"    => multilang_text('content',$analyzer),
             "folder"     => {
-                  "type" => "string",
+                  "type" => "text",
                   "analyzer" => $analyzer,
                   # Some day I'll know how to have a separate tokenizer per-field
                   # "tokenizer" => "path_hierarchy",
             },
             # This could also be considered a path_hierarchy
-            'mime_type'  => { type => "string", index => 'not_analyzed' }, # text/html etc.
+            'mime_type'  => { type => "text", index => 'not_analyzed' }, # text/html etc.
             "creation_date"    => {
               "type"  =>  "date",
               "format" => "yyyy-MM-dd HH:mm:ss",
@@ -218,8 +216,13 @@ sub find_or_create_index {
                                 # XXX make configurable per language
                                 "searchapp_synonyms_en" => {
                                    "tokenizer" => "standard",
-                                   "filter" => ["lowercase", "searchapp_synonyms_en"],
+                                   "filter" => ["standard", "lowercase", "searchapp_synonyms_en"],
                                 },
+                                "searchapp_en" => {
+                                   "tokenizer" => "standard",
+                                    "filter" => ["filter_stem_${lang}"],
+                                },
+                   #"filter" => ['standard','lowercase',"${analyzer}_stemmer"],
                             },
                             "filter" => {
                                 # XXX make configurable per language
