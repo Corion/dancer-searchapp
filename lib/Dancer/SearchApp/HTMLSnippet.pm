@@ -50,7 +50,7 @@ within a C<< <p class="page\d+"> >> section (or crosses that)
 sub make_snippet( $html, $from, $to, $max_length ) {
     my $start = $from->{start};
     my $end = $to->{end};
-    my $fudge = int(( $max_length - ($end-$start)) / 2);
+    my $fudge = int(( $max_length - ($end-$start)) / 2); # / for Filter::Simple
     
     # We want to start at something akin to a word boundary
     if( substr($html,$start-$fudge-1,$fudge+2) =~ /\s+(.*)$/ ) {
