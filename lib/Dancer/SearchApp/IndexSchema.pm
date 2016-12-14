@@ -12,7 +12,7 @@ my $false = JSON->false;
 
 Dancer::SearchApp::IndexSchema - schema definition for the Elasticsearch index
 
-XXX Consider maybe etending this so different items (like Tweets, RSS)
+XXX Consider maybe extending this so different items (like Tweets, RSS)
 have different fields instead of mushing all metadata into the same schema
 
 =cut
