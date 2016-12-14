@@ -4,7 +4,7 @@ use Exporter 'import';
 use AnyEvent;
 
 use vars qw(@EXPORT_OK $VERSION);
-$VERSION = '0.05';
+$VERSION = '0.06';
 @EXPORT_OK = (qw(await));
 
 =head1 NAME

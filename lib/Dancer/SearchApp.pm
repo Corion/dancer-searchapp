@@ -13,7 +13,7 @@ use Dancer::SearchApp::Entry;
 use Dancer::SearchApp::HTMLSnippet;    
 
 use vars qw($VERSION $es %indices);
-$VERSION = '0.05';
+$VERSION = '0.06';
 
 =head1 NAME
 

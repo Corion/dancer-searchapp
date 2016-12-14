@@ -29,7 +29,7 @@ use Promises;
 =cut
 
 use vars '$VERSION';
-$VERSION = '0.05';
+$VERSION = '0.06';
 
 extends 'CORION::Apache::Tika';
 

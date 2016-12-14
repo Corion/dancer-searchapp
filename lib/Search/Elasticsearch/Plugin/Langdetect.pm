@@ -7,7 +7,7 @@ __PACKAGE__->_install_api('langdetect');
 use Search::Elasticsearch 2.00 ();
 
 use vars '$VERSION';
-$VERSION = '0.05';
+$VERSION = '0.06';
 
 =head1 SYNOPSIS
 

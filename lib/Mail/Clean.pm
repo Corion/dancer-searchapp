@@ -2,7 +2,7 @@ package Mail::Clean;
 use strict;
 use Exporter 'import';
 use vars qw($VERSION);
-$VERSION = '0.05';
+$VERSION = '0.06';
 
 use vars qw(@EXPORT_OK);
 @EXPORT_OK = qw( clean_subject );

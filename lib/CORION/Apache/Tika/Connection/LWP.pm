@@ -7,7 +7,7 @@ use Moo;
 with 'CORION::Apache::Tika::Connection';
 
 use vars '$VERSION';
-$VERSION = '0.05';
+$VERSION = '0.06';
 
 has ua => (
     is => 'ro',

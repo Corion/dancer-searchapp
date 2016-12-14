@@ -18,7 +18,7 @@ have different fields instead of mushing all metadata into the same schema
 =cut
 
 use vars qw(@EXPORT_OK $VERSION @types);
-$VERSION = '0.05';
+$VERSION = '0.06';
 @EXPORT_OK = qw(create_mapping multilang_text find_or_create_index %indices %analyzers );
 
 # Maybe we should move away from the type so we can rely on just the id of a document
