@@ -2,12 +2,13 @@
 # DOCKER-VERSION 0.3.4
 #
 # Invoke from the distribution directory as
-#     docker -t dancer-searchapp -f docker/Dockerfile .
+#     docker build -t dancer-searchapp -f docker/Dockerfile .
 #
 FROM        perl:latest
 MAINTAINER  Max Maischein <corion@corion.net>
 
 WORKDIR /root/Dancer-SearchApp
+
 # For running Tika
 RUN apt-get update && apt-get install -y \
   default-jre-headless \
@@ -43,4 +44,4 @@ EXPOSE 8080
 ENTRYPOINT ["/root/Dancer-SearchApp/docker/docker-entrypoint.sh"]
 # use docker run -d -P -name config -v ../config-examples:/config ...
 VOLUME /es-data
-CMD ["--port", "8080"] 
+CMD ["--port", "8080"]
