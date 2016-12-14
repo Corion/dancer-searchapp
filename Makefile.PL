@@ -45,8 +45,11 @@ WriteMakefile1(
         'HTML::Entities' => 0,
         'HTML::Restrict' => 0,
         'Template'   => 0,
-        'Search::Elasticsearch' => 2,
-        'Search::Elasticsearch::Async' => 2,
+        'Search::Elasticsearch' => 2.03,
+        'Search::Elasticsearch::Role::Cxn::HTTP' => '2.03',
+        'Search::Elasticsearch::Async' => '2.03',
+        'Search::Elasticsearch::Client::2_0' => '5.00',
+        'Search::Elasticsearch::Client::2_0::Async' => '2.03',
 
         'Promises'   => 0,
         'Path::Class' => 0,
