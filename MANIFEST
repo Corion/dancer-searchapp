@@ -4,6 +4,7 @@ bin/commandline.pl
 bin/index-filesystem.pl
 bin/index-ical.pl
 bin/index-imap.pl
+bin/index-url.pl
 Changes
 config-examples/fs-import.yml
 config-examples/ical-import.yml
@@ -73,6 +74,7 @@ README.mkdn
 t/001_base.t
 t/002_complete_route.t
 t/002_index_route.t
+t/003-htmlsnippet.t
 t/documents/2016-210_tor_cdtf.pdf
 t/documents/2016_budget.pdf
 t/documents/agricultural-trade-statistics_en.docx
