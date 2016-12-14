@@ -51,6 +51,7 @@ WriteMakefile1(
         'Search::Elasticsearch::Async' => '2.03',
         'Search::Elasticsearch::Client::2_0' => '5.00',
         'Search::Elasticsearch::Client::2_0::Async' => '2.03',
+        'Apache::Tika::Async' => 0,
 
         'Promises'   => 0,
         'Path::Class' => 0,
@@ -73,8 +74,6 @@ WriteMakefile1(
         'Text::Markdown' => 0,
         'HTTP::Date' => 0,
         'Time::Piece' => 0,
-        
-        # CORION::Apache::Tika included until we spin it off
         
         # For media files
         'MP3::Tag' => 0,
