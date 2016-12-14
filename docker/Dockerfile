@@ -16,7 +16,7 @@ RUN apt-get update && apt-get install -y \
 
 # Install Tika
 RUN mkdir jar \
-&& curl http://www.apache.org/dyn/closer.cgi/tika/tika-server-1.12.jar -o jar/tika-server-1.12.jar
+&& curl http://www.apache.org/dyn/closer.cgi/tika/tika-server-1.14.jar -o jar/tika-server-1.14.jar
 
 # Install Elasticsearch
 # + Language detection plugin
