@@ -28,7 +28,7 @@ ADD ["lib/Dancer/SearchApp.pm", "lib/Dancer/"]
 # Install App prerequisites, using --notest to speed things up vastly,
 # at the cost of not testing the resulting setup
 RUN    cd /root/Dancer-SearchApp \
-    && cpanm --notest --installdeps . \
+    && cpanm --notest --local-lib vendor/ --installdeps . \
     && rm -fr /root/.cpanm /tmp/*
 
 # Copy the current build into the Docker image
