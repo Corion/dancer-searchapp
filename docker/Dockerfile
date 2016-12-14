@@ -7,16 +7,15 @@
 FROM        perl:latest
 MAINTAINER  Max Maischein <corion@corion.net>
 
+WORKDIR /root/Dancer-SearchApp
 # For running Tika
 RUN apt-get update && apt-get install -y \
   default-jre-headless \
    && rm -rf /var/lib/apt/lists/*
 
-RUN mkdir -p /root/Dancer-SearchApp
-
 # Install Tika
-RUN mkdir /root/Dancer-SearchApp/jar \
-&& curl http://www.apache.org/dyn/closer.cgi/tika/tika-server-1.12.jar -o Dancer-SearchApp/jar/tika-server-1.12.jar
+RUN mkdir jar \
+&& curl http://www.apache.org/dyn/closer.cgi/tika/tika-server-1.12.jar -o jar/tika-server-1.12.jar
 
 # Install Elasticsearch
 # + Language detection plugin
@@ -52,7 +51,6 @@ RUN    cd /root/Dancer-SearchApp \
 
 EXPOSE 8080
 
-WORKDIR /root/Dancer-SearchApp
 # ENV # the elasticsearch we will use to store the data
 ENTRYPOINT ["/root/Dancer-SearchApp/docker/docker-entrypoint.sh"]
 # use docker run -d -P -name config -v ../config-examples:/config ...
