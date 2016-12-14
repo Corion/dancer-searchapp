@@ -4,7 +4,6 @@ bin/commandline.pl
 bin/index-filesystem.pl
 bin/index-ical.pl
 bin/index-imap.pl
-bin/index-url.pl
 Changes
 config-examples/fs-import.yml
 config-examples/ical-import.yml
